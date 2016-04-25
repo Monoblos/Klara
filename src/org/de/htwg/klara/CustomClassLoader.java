@@ -4,10 +4,16 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 
-public abstract class CustomClassLoader extends ClassLoader {
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
+
+public class CustomClassLoader extends ClassLoader {
 	public enum FilterType {
 		BLACKLIST,
 		WHITELIST,
@@ -19,18 +25,26 @@ public abstract class CustomClassLoader extends ClassLoader {
 	private FilterType filterType;
 	private Pattern[] filter;
 	private Hashtable<String, Class<?>> cachedClasses = new Hashtable<>();
+	private Class<? extends ClassVisitor> visitor;
 	
 	public CustomClassLoader() {
-		this(true, FilterType.NOTHING, null);
+		this(true, FilterType.NOTHING, null, ClassVisitor.class);
 	}
 	
-	public CustomClassLoader(boolean cache, FilterType filterType, Pattern[] filter) {
+	public CustomClassLoader(boolean cache, FilterType filterType, Pattern[] filter, Class<? extends ClassVisitor> visitor) {
 		//Default init of a custom class loader
 		super(CustomClassLoader.class.getClassLoader());
+		
+		try {
+			visitor.getConstructor(Integer.TYPE, ClassVisitor.class);
+		} catch (NoSuchMethodException | SecurityException | IllegalArgumentException e) {
+			throw new IllegalArgumentException("Invalid ClassVisitor. Make sure it has a (int, CW)-Constructor. If it is an inner class it needs to be static.", e);
+		}
 		
 		this.cache = cache;
 		this.filterType = filterType;
 		this.filter = filter;
+		this.visitor = visitor;
 	}
 	
 	/**
@@ -91,9 +105,23 @@ public abstract class CustomClassLoader extends ClassLoader {
 			throw new ClassNotFoundException("Unable to find class " + name, e);
 		}
 		
-		classBytes = modifyResult(classBytes);
+		ClassWriter cw = new ClassWriter(0);
+		ClassVisitor cv;
+		try {
+			cv = visitor.getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
+		} catch (InstantiationException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			// We exactly know the method and parameters, so this should never fail.
+			System.out.println("Somthing somewhere went terribly wrong with the given visitor.");
+			e.printStackTrace();
+			return null;
+		}
+		ClassReader cr = new ClassReader(classBytes);
+		cr.accept(cv, 0);
+		byte[] modifiedBytes = cw.toByteArray();
 		
-		Class<?> c = defineClass(name, classBytes, 0, classBytes.length);
+		Class<?> c = defineClass(name, modifiedBytes, 0, modifiedBytes.length);
 		cachedClasses.put(name, c);
 		return c;
 	}
@@ -122,6 +150,4 @@ public abstract class CustomClassLoader extends ClassLoader {
 	public void clearCache() {
 		cachedClasses.clear();
 	}
-	
-	protected abstract byte[] modifyResult(byte[] rawClass);
 }
