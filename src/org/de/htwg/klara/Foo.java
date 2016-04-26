@@ -1,7 +1,7 @@
 package org.de.htwg.klara;
 
 public class Foo {
-	public static void main(String args[]) {
+	public static void main(String args[]) throws InterruptedException {
 		System.out.println("Foo got run. Class loader: " + Foo.class.getClassLoader());
 
 		String x = "bla";
@@ -10,6 +10,8 @@ public class Foo {
 		for(int i = 0; i < 10; i++) {
 			counter += 2;
 		}
+		
+		Thread.sleep(200);
 		
 		if (counter > 2)
 			x = "blub";

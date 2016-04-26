@@ -34,7 +34,7 @@ public class BytcodeInstructionPrinter extends MethodVisitor {
 		}
 	}
 	
-	public static Class<? extends ClassVisitor> getVisitorForThis() {
+	public static Class<? extends ClassVisitor> getClassVisitorForThis() {
 		return Dummy.class;
 	}
 	
@@ -49,7 +49,10 @@ public class BytcodeInstructionPrinter extends MethodVisitor {
 		if (!ongoingLine)
 			sb.append("     ");
 		sb.append(line);
-		System.out.println(sb);
+		System.out.print(sb);
+		
+		System.out.println(" (" + Thread.currentThread().getStackTrace()[2].getMethodName() + ")");
+		
 		ongoingLine = false;
 	}
 	
