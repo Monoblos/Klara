@@ -91,15 +91,39 @@ public class BytecodeUtils implements Opcodes {
 		return s;
 	}
 	
+	public static String opcodeToType(int opcode) {
+		switch (opcode) {
+		case T_BOOLEAN:
+			return "T_BOOLEAN";
+		case T_BYTE:
+			return "T_BYTE";
+		case T_CHAR:
+			return "T_CHAR";
+		case T_DOUBLE:
+			return "T_DOUBLE";
+		case T_FLOAT:
+			return "T_FLOAT";
+		case T_INT:
+			return "T_INT";
+		case T_LONG:
+			return "T_LONG";
+		case T_SHORT:
+			return "T_SHORT";
+
+		default:
+			return "ERROR("+opcode+")";
+		}
+	}
+	
 	public static String accessBytesToString(int access) {
 		StringBuilder sb = new StringBuilder("");
-		if ((access & Opcodes.ACC_PUBLIC) > 0)
+		if ((access & ACC_PUBLIC) > 0)
 			sb.append("public ");
-		else if ((access & Opcodes.ACC_PRIVATE) > 0)
+		else if ((access & ACC_PRIVATE) > 0)
 			sb.append("private ");
-		else if ((access & Opcodes.ACC_PROTECTED) > 0)
+		else if ((access & ACC_PROTECTED) > 0)
 			sb.append("protected ");
-		if ((access & Opcodes.ACC_STATIC) > 0)
+		if ((access & ACC_STATIC) > 0)
 			sb.append("static ");
 		
 		return sb.toString();

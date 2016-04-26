@@ -3,6 +3,7 @@ package org.de.htwg.klara;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 public class BytcodeInstructionPrinter extends MethodVisitor {
 	private static class Dummy extends ClassVisitor {
@@ -26,9 +27,9 @@ public class BytcodeInstructionPrinter extends MethodVisitor {
 					sb.append(", ");
 				sb.append(paramList[i]);
 			}
-			sb.append(")");
+			sb.append(") {");
 			
-			System.out.print(sb.toString());
+			System.out.println(sb.toString());
 			return new BytcodeInstructionPrinter(api, super.visitMethod(access, name, desc, signature, exceptions));
 		}
 	}
@@ -37,51 +38,78 @@ public class BytcodeInstructionPrinter extends MethodVisitor {
 		return Dummy.class;
 	}
 	
+	private boolean ongoingLine = false;
+	
 	public BytcodeInstructionPrinter(int api, MethodVisitor mv) {
 		super(api, mv);
+	}
+	
+	private void pushLine(String line) {
+		StringBuilder sb = new StringBuilder("");
+		if (!ongoingLine)
+			sb.append("     ");
+		sb.append(line);
+		System.out.println(sb);
+		ongoingLine = false;
+	}
+	
+	private void pushLineNumber(int lineNumber) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(lineNumber);
+		if (lineNumber < 10)
+			sb.append(" ");
+		if (lineNumber < 100)
+			sb.append(" ");
+		if (lineNumber < 1000)
+			sb.append(" ");
+		sb.append(" ");
+		System.out.print(sb);
+		ongoingLine =  true;
 	}
 	
 	@Override
 	public void visitCode() {
 		super.visitCode();
-		System.out.println();
 	}
 
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name,
 			String desc) {
 		super.visitFieldInsn(opcode, owner, name, desc);
-		System.out.println(BytecodeUtils.opcodeToString(opcode) + " " + owner + " " + name + " " + desc);
+		pushLine(BytecodeUtils.opcodeToString(opcode) + " " + owner + " " + name + " " + desc);
 	}
 	
 	@Override
 	public void visitIincInsn(int var, int increment) {
 		super.visitIincInsn(var, increment);
-		System.out.println("INC " + var + " " + increment);
+		pushLine("IINC " + var + " " + increment);
 	}
 	
 	@Override
 	public void visitInsn(int opcode) {
 		super.visitInsn(opcode);
-		System.out.println(BytecodeUtils.opcodeToString(opcode));
+		pushLine(BytecodeUtils.opcodeToString(opcode));
 	}
 	
 	@Override
 	public void visitIntInsn(int opcode, int operand) {
 		super.visitIntInsn(opcode, operand);
-		System.out.println(BytecodeUtils.opcodeToString(opcode) + " " + operand);
+		if (opcode != Opcodes.NEWARRAY)
+			pushLine(BytecodeUtils.opcodeToString(opcode) + " " + operand);
+		else
+			pushLine(BytecodeUtils.opcodeToString(opcode) + " " + BytecodeUtils.opcodeToType(operand));
 	}
 	
 	@Override
 	public void visitJumpInsn(int opcode, Label label) {
 		super.visitJumpInsn(opcode, label);
-		System.out.println(BytecodeUtils.opcodeToString(opcode) + " " + label);
+		pushLine(BytecodeUtils.opcodeToString(opcode) + " " + label);
 	}
 	
 	@Override
 	public void visitLabel(Label label) {
 		super.visitLabel(label);
-		System.out.print(label + " ");
+		System.out.println(label + ":");
 	}
 	
 	@Override
@@ -89,33 +117,33 @@ public class BytcodeInstructionPrinter extends MethodVisitor {
 		super.visitLdcInsn(cst);
 		if (cst instanceof String)
 			cst = "\"" + cst + "\"";
-		System.out.println("LDC " + cst);
+		pushLine("LDC " + cst);
 	}
 	
 	@Override
 	public void visitLineNumber(int line, Label start) {
 		// TODO Auto-generated method stub
 		super.visitLineNumber(line, start);
-		System.out.print("Z" + line + " ");
+		pushLineNumber(line);
 	}
 	
 	@Override
 	public void visitMethodInsn(int opcode, String owner, String name,
 			String desc, boolean itf) {
 		super.visitMethodInsn(opcode, owner, name, desc, itf);
-	    System.out.println(BytecodeUtils.opcodeToString(opcode) + " " + owner + " " + name + desc);
+		pushLine(BytecodeUtils.opcodeToString(opcode) + " " + owner + " " + name + desc);
 	}
 	
 	@Override
 	public void visitVarInsn(int opcode, int var) {
 		super.visitVarInsn(opcode, var);
-	    System.out.println(BytecodeUtils.opcodeToString(opcode) + " " + var);
+		pushLine(BytecodeUtils.opcodeToString(opcode) + " " + var);
 	}
 	
 	@Override
 	public void visitTypeInsn(int opcode, String type) {
 		super.visitTypeInsn(opcode, type);
-		System.out.println(BytecodeUtils.opcodeToString(opcode) + " " + type);
+		pushLine(BytecodeUtils.opcodeToString(opcode) + " " + type);
 	}
 	
 	@Override
