@@ -66,22 +66,21 @@ public class CustomClassLoader extends ClassLoader {
 	 * @return	Result of the filter or false if invalid filter.
 	 */
 	private boolean matchesFilter(String name) {
-		boolean match;
 		switch(filterType) {
 		case BLACKLIST:
 			//If any matches do not modify
-			match = true;
 			for(Pattern p : filter) {
-				match &= p.matcher(name).matches();
+				if(p.matcher(name).matches())
+					return false;
 			}
-			return match;
+			return true;
 		case WHITELIST:
 			// If any matches modify
-			match = false;
 			for(Pattern p : filter) {
-				match |= p.matcher(name).matches();
+				if (p.matcher(name).matches())
+					return true;
 			}
-			return match;
+			return false;
 		case ALL:
 			return true;
 		case NOTHING:
