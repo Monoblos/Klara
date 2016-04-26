@@ -5,7 +5,7 @@ public class Foo {
 		System.out.println("Foo got run. Class loader: " + Foo.class.getClassLoader());
 
 		String x = "bla";
-		int counter = 0;
+		long counter = 0;
 		
 		for(int i = 0; i < 10; i++) {
 			counter += 2;
@@ -16,5 +16,9 @@ public class Foo {
 		
 		boolean result = x.equals("a");
 		System.out.println("Result of usless compuation: " + result);
+	}
+	
+	protected void test(int a, int b, double x) {
+		
 	}
 }

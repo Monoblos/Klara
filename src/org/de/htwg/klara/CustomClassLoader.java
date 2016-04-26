@@ -105,7 +105,7 @@ public class CustomClassLoader extends ClassLoader {
 			throw new ClassNotFoundException("Unable to find class " + name, e);
 		}
 		
-		ClassWriter cw = new ClassWriter(0);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		ClassVisitor cv;
 		try {
 			cv = visitor.getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
