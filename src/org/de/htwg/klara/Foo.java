@@ -20,7 +20,14 @@ public class Foo {
 		System.out.println("Result of usless compuation: " + result);
 	}
 	
-	protected void test(int a, int b, double x) {
+	protected boolean test(int a, int b, double x) {
+		int c = (a << 2) + b;
+		if (c < 20)
+			return false;
 		
+		if (Math.pow(x, 3) < 123)
+			return false;
+		
+		return true;
 	}
 }

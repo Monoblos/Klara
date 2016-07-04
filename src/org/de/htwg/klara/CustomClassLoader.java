@@ -38,7 +38,7 @@ public class CustomClassLoader extends ClassLoader {
 		try {
 			visitor.getConstructor(Integer.TYPE, ClassVisitor.class);
 		} catch (NoSuchMethodException | SecurityException | IllegalArgumentException e) {
-			throw new IllegalArgumentException("Invalid ClassVisitor. Make sure it has a (int, CW)-Constructor. If it is an inner class it needs to be static.", e);
+			throw new IllegalArgumentException("Invalid ClassVisitor. Make sure it has a (int, CV)-Constructor. If it is an inner class it needs to be static.", e);
 		}
 		
 		this.cache = cache;
@@ -105,9 +105,11 @@ public class CustomClassLoader extends ClassLoader {
 		}
 		
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		ClassVisitor printer;
 		ClassVisitor cv;
 		try {
-			cv = visitor.getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
+			printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
+			cv = visitor.getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, printer);
 		} catch (InstantiationException | IllegalAccessException
 				| IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
