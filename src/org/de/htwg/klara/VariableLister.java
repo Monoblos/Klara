@@ -1,5 +1,6 @@
 package org.de.htwg.klara;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -62,12 +63,7 @@ public class VariableLister extends ClassNode {
 		Map<Integer, LocalVariableNode> currentScope = new HashMap<>();
 		List<LocalVariableNode> futureVariables = new LinkedList<>();
 		
-		int paramCount = calculateDescSize(mn.desc, access);
-		
 		for (LocalVariableNode lvn : (List<LocalVariableNode>)mn.localVariables) {
-			if (lvn.index >= paramCount) {
-				//lvn.index += 2;
-			}
 			futureVariables.add(lvn);
 		}
 		
@@ -76,25 +72,18 @@ public class VariableLister extends ClassNode {
 		AbstractInsnNode lastNewLine;
 		while (j.hasNext()) {
 			AbstractInsnNode in = j.next();
-			int opcode = in.getOpcode();
-			if ((opcode >= Opcodes.IRETURN && opcode <= Opcodes.RETURN) || opcode == Opcodes.ATHROW) {
-				InsnList il = generateTimePrint(paramCount, mn.name);
-				//insns.insert(in.getPrevious(), il);
-			} else if (in.getType() == AbstractInsnNode.VAR_INSN) {
+			if (in.getType() == AbstractInsnNode.VAR_INSN) {
 				VarInsnNode varIn = (VarInsnNode)in;
-				if (varIn.var >= paramCount) {
-					//varIn.var += 2;
-				}
-				if (varIn.getOpcode() == Opcodes.LSTORE) {
+				if (Opcodes.ISTORE <= varIn.getOpcode() && varIn.getOpcode() <= Opcodes.ASTORE) {
 					LocalVariableNode lvn = currentScope.get(varIn.var);
 					if (lvn != null)
 						insns.insert(in, generateVariablePrint(lvn));
 				}
 			} else if (in.getType() == AbstractInsnNode.IINC_INSN) {
 				IincInsnNode iincIn = (IincInsnNode)in;
-				if (iincIn.var >= paramCount) {
-					//iincIn.var += 2;
-				}
+				LocalVariableNode lvn = currentScope.get(iincIn.var);
+				if (lvn != null)
+					insns.insert(in, generateVariablePrint(lvn));
 			} else if (in.getType() == AbstractInsnNode.LABEL) {
 				LabelNode label = (LabelNode)in;
 				LocalVariableNode tmpNode;
@@ -122,12 +111,6 @@ public class VariableLister extends ClassNode {
 				lastNewLine = in;
 			}
 		}
-		InsnList il = new InsnList();
-		il.add(new InsnNode(Opcodes.LCONST_0));
-		il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/lang/System", "currentTimeMillis", "()J", false));
-		il.add(new InsnNode(Opcodes.LSUB));
-		il.add(new VarInsnNode(Opcodes.LSTORE, paramCount));
-		//insns.insert(il);
 	}
 	
 	private static int calculateDescSize(String desc, int access) {
@@ -163,12 +146,19 @@ public class VariableLister extends ClassNode {
 	}
 	
 	private static InsnList generateVariablePrint(LocalVariableNode var) {
-		if (var.desc.startsWith("["))
-			return new InsnList();
+		boolean isArray = false;
+		
+		if (var.desc.startsWith("[")) {
+			int[] test = new int[4];
+			Arrays.toString(test);
+			isArray = true;
+		}
 
 		String builderMethod = "Ljava/lang/Object;";
 		if (var.desc.length() == 1)
 			builderMethod = var.desc;
+		else if (var.desc.equals("Ljava/lang/String;"))
+			builderMethod = "Ljava/lang/String;";
 
 		InsnList il = new InsnList();
 		il.add(new FieldInsnNode(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
@@ -177,6 +167,9 @@ public class VariableLister extends ClassNode {
 		il.add(new LdcInsnNode("Value of variable " + var.name + " now at: "));
 		il.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false));
 		il.add(load(var));
+		if (isArray) {
+			
+		}
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(" + builderMethod + ")Ljava/lang/StringBuilder;", false));
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false));
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false));
