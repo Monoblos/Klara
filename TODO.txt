@@ -1,0 +1,15 @@
+Inivisble Asserts
+Trace definierung
+Fehler-case definieren und passend konfigurieren
+Endlos-schleifen erkennen
+Switch case (besonders default)
+== Warnung
+final Zuweisen???
+
+Gliederung für Bachelorarbeit
+* Stand der Technik
+* 
+
+
++Arrays.deepToSting
+Scope angabe in ausgabe (Klasse, methode)
