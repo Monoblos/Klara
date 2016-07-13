@@ -69,7 +69,6 @@ public class VariableLister extends ClassNode {
 		
 		InsnList insns = mn.instructions;
 		Iterator<AbstractInsnNode> j = insns.iterator();
-		AbstractInsnNode lastNewLine;
 		while (j.hasNext()) {
 			AbstractInsnNode in = j.next();
 			if (in.getType() == AbstractInsnNode.VAR_INSN) {
@@ -91,14 +90,12 @@ public class VariableLister extends ClassNode {
 				for (int i = 0; i < scopeKeys.length; ++i) {
 					tmpNode = currentScope.get(scopeKeys[i]);
 					if (label.equals(tmpNode.end)) {
-						System.out.println("Reached end of scope of " + tmpNode.name);
 						currentScope.remove(scopeKeys[i]);
 					}
 				}
 				for (int i = 0; i < futureVariables.size(); ++i) {
 					tmpNode = futureVariables.get(i);
 					if (label.equals(tmpNode.start)) {
-						System.out.println("Reached start of scope of " + tmpNode.name);
 						currentScope.put(tmpNode.index, tmpNode);
 						futureVariables.remove(tmpNode);
 						--i;
@@ -108,7 +105,6 @@ public class VariableLister extends ClassNode {
 			} else if (in.getType() == AbstractInsnNode.LINE) {
 				LineNumberNode lnn = (LineNumberNode)in;
 				insns.insert(in, generatePrint("Now at line " + lnn.line));
-				lastNewLine = in;
 			}
 		}
 	}
@@ -157,7 +153,7 @@ public class VariableLister extends ClassNode {
 		String builderMethod = "Ljava/lang/Object;";
 		if (var.desc.length() == 1)
 			builderMethod = var.desc;
-		else if (var.desc.equals("Ljava/lang/String;"))
+		else if (isArray || var.desc.equals("Ljava/lang/String;"))
 			builderMethod = "Ljava/lang/String;";
 
 		InsnList il = new InsnList();
@@ -168,7 +164,7 @@ public class VariableLister extends ClassNode {
 		il.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "(Ljava/lang/String;)V", false));
 		il.add(load(var));
 		if (isArray) {
-			
+			il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/util/Arrays", "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;", false));
 		}
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(" + builderMethod + ")Ljava/lang/StringBuilder;", false));
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false));
