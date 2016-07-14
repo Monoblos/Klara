@@ -36,7 +36,7 @@ public class LineSpecification implements ParseEventListener {
 
 	@Override
 	public void addRange(int start, int end) {
-		for(int i = start; i <= end; i++) {
+		for(int i = Math.min(start, end); i <= Math.max(start, end); i++) {
 			includedLines.add(i);
 		}
 	}
