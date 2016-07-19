@@ -6,14 +6,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.regex.Pattern;
 
+import org.de.htwg.klara.transformers.Transformer;
+import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
-public class CustomClassLoader extends ClassLoader {
+public class TransformingClassLoader extends ClassLoader {
 	public enum FilterType {
 		BLACKLIST,
 		WHITELIST,
@@ -25,28 +28,26 @@ public class CustomClassLoader extends ClassLoader {
 	private FilterType filterType;
 	private Pattern[] filter;
 	private Hashtable<String, Class<?>> cachedClasses = new Hashtable<>();
-	private Class<? extends ClassVisitor> visitor;
+	private List<Class<? extends TransformationEventListener>> transformers;
 	
-	public CustomClassLoader() {
-		this(true, FilterType.NOTHING, null, ClassVisitor.class);
-	}
-	
-	public CustomClassLoader(boolean cache, FilterType filterType, Pattern[] filter, Class<? extends ClassVisitor> visitor) {
+	public TransformingClassLoader(boolean cache, FilterType filterType, Pattern[] filter, List<Class<? extends TransformationEventListener>> transformers) {
 		//Default init of a custom class loader
-		super(CustomClassLoader.class.getClassLoader());
+		super(TransformingClassLoader.class.getClassLoader());
 		
 		try {
-			visitor.getConstructor(Integer.TYPE, ClassVisitor.class);
+			for (Class<? extends TransformationEventListener> tel : transformers) {
+				tel.getConstructor(Transformer.class);
+			}
 		} catch (NoSuchMethodException | SecurityException | IllegalArgumentException e) {
-			throw new IllegalArgumentException("Invalid ClassVisitor. Make sure it has a (int, CV)-Constructor. If it is an inner class it needs to be static.", e);
+			throw new IllegalArgumentException("Invalid Transformation-event-listener. Make sure it has a (Transformer)-Constructor. If it is an inner class it needs to be static.", e);
 		}
 		
 		this.cache = cache;
 		this.filterType = filterType;
 		this.filter = filter;
-		this.visitor = visitor;
+		this.transformers = transformers;
 	}
-	
+
 	/**
 	 * If caching is enabled, try to find the given class in the cache.
 	 * @param name	The name of the class to search for.
@@ -106,10 +107,14 @@ public class CustomClassLoader extends ClassLoader {
 		
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		ClassVisitor printer;
-		ClassVisitor cv;
+		Transformer trans;
 		try {
 			printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
-			cv = visitor.getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, printer);
+			trans = new Transformer(Opcodes.ASM4, printer);
+			trans.setAddLineInfo(true);
+			for (Class<? extends TransformationEventListener> tel : transformers) {
+				tel.getConstructor(Transformer.class).newInstance(trans);
+			}
 		} catch (InstantiationException | IllegalAccessException
 				| IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
@@ -119,7 +124,7 @@ public class CustomClassLoader extends ClassLoader {
 			return null;
 		}
 		ClassReader cr = new ClassReader(classBytes);
-		cr.accept(cv, 0);
+		cr.accept(trans, 0);
 		byte[] modifiedBytes = cw.toByteArray();
 		
 		Class<?> c = defineClass(name, modifiedBytes, 0, modifiedBytes.length);

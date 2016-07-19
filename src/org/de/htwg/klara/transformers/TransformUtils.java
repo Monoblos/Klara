@@ -12,11 +12,11 @@ public class TransformUtils {
 	private TransformUtils() { };
 	
 	public static String formatLocation(String className, int line) {
-		return className + "@" + line;
+		return className + "@" + line + ": ";
 	}
 	
 	public static InsnList generatePrintWithLocation(String className, int line, String text) {
-		return generatePrint(formatLocation(className, line) + ": " + text);
+		return generatePrint(formatLocation(className, line) + text);
 	}
 	
 	public static InsnList generatePrint(String text) {
