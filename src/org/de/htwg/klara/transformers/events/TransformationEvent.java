@@ -7,6 +7,9 @@ public interface TransformationEvent {
 	public static final int IINC_INSN = 2;
 	public static final int SCOPE_REACHED = 3;
 	public static final int SCOPE_ENDED = 4;
+	public static final int LINE_START = 5;
+	public static final int LINE_END = 6;
+	public static final int PRINT_ADDED = 7;
 	
 	public AbstractInsnNode getNode();
 	public int getType();

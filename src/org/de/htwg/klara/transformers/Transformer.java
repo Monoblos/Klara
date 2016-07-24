@@ -6,7 +6,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.de.htwg.klara.linespec.LineSpecification;
 import org.de.htwg.klara.transformers.events.IincInsnEvent;
+import org.de.htwg.klara.transformers.events.LineEndEvent;
+import org.de.htwg.klara.transformers.events.LineStartEvent;
+import org.de.htwg.klara.transformers.events.PrintAddedEvent;
 import org.de.htwg.klara.transformers.events.ScopeReachedEvent;
 import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
@@ -31,12 +35,12 @@ import org.objectweb.asm.tree.VarInsnNode;
 public class Transformer extends ClassNode {
 	protected ClassVisitor cv = null;
 	protected String className = "";
+	protected LineSpecification lineScope = new LineSpecification();
 	protected LineNumberNode currentLine = null;
 	protected MethodNode currentMethod = null;
 	Map<Integer, LocalVariableNode> currentScope = new HashMap<>();
 	List<LocalVariableNode> futureVariables = new LinkedList<>();
-	protected boolean addLineInfo = false;
-	private boolean currentLinePrinted = false;
+	private boolean inLineScope = false;
 	
 	protected List<TransformationEventListener> listeners = new LinkedList<>();
 
@@ -54,24 +58,27 @@ public class Transformer extends ClassNode {
 		return listeners.remove(listener);
 	}
 	
+	public void setLineScope(LineSpecification scope) {
+		this.lineScope = scope;
+	}
+	
 	protected void sendEvent(TransformationEvent e) {
+		if (!inLineScope)
+			return;
 		for (TransformationEventListener tel : listeners) {
 			tel.handle(e);
 		}
 	}
 	
-	public void setAddLineInfo(boolean value) {
-		addLineInfo = value;
-	}
-	
-	public boolean getAddLineInfo() {
-		return addLineInfo;
+	private void setLine(LineNumberNode line) {
+		currentLine = line;
+		inLineScope = lineScope.contains(line.line);
 	}
 	
 	@Override
 	public void visit(int version, int access, String name, String signature,
 			String superName, String[] interfaces) {
-		this.className = name;
+		this.className = name.replace('/', '.');
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 	
@@ -136,11 +143,12 @@ public class Transformer extends ClassNode {
 				}
 			} else if (in.getType() == AbstractInsnNode.LINE) {
 				LineNumberNode lnn = (LineNumberNode)in;
-				if (addLineInfo && !currentLinePrinted) {
-					printLine(currentLine, new InsnList());
-				}
-				currentLinePrinted = false;
-				currentLine = lnn;
+				if (currentLine != null)
+					sendEvent(new LineEndEvent(currentLine));
+				
+				setLine(lnn);
+
+				sendEvent(new LineStartEvent(currentLine));
 			}
 		}
 	}
@@ -161,7 +169,7 @@ public class Transformer extends ClassNode {
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false));
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false));
 		currentMethod.instructions.insert(where, il);
-		currentLinePrinted = true;
+		sendEvent(new PrintAddedEvent(where));
 	}
 	
 	public String getClassName() {

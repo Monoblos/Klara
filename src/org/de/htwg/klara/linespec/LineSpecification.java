@@ -5,15 +5,20 @@ import java.util.Set;
 
 public class LineSpecification implements ParseEventListener {
 	Set<Integer> includedLines = new HashSet<>();
-	public LineSpecification(String spec) {
+	
+	public LineSpecification() {
+		
+	}
+
+	public LineSpecification(final String spec) {
 		parseSpec(spec);
 	}
 	
-	public boolean contains(int line) {
-		return includedLines.contains(line);
+	public boolean contains(final int line) {
+		return includedLines.size() == 0 || includedLines.contains(line);
 	}
 	
-	private final void parseSpec(String spec) {
+	private final void parseSpec(final String spec) {
 		int currentPos = 0;
 		ParsingState state = new InitialState(this);
 		
@@ -30,12 +35,12 @@ public class LineSpecification implements ParseEventListener {
 	}
 
 	@Override
-	public void add(int line) {
+	public void add(final int line) {
 		includedLines.add(line);
 	}
 
 	@Override
-	public void addRange(int start, int end) {
+	public void addRange(final int start, final int end) {
 		for(int i = Math.min(start, end); i <= Math.max(start, end); i++) {
 			includedLines.add(i);
 		}

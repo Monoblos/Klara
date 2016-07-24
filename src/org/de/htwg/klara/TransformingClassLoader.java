@@ -7,12 +7,13 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.de.htwg.klara.linespec.LineSpecification;
 import org.de.htwg.klara.transformers.Transformer;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
@@ -26,11 +27,11 @@ public class TransformingClassLoader extends ClassLoader {
 	
 	private boolean cache;
 	private FilterType filterType;
-	private Pattern[] filter;
+	private Map<Pattern, LineSpecification> filter;
 	private Hashtable<String, Class<?>> cachedClasses = new Hashtable<>();
 	private List<Class<? extends TransformationEventListener>> transformers;
 	
-	public TransformingClassLoader(boolean cache, FilterType filterType, Pattern[] filter, List<Class<? extends TransformationEventListener>> transformers) {
+	public TransformingClassLoader(boolean cache, FilterType filterType, Map<Pattern, LineSpecification> filter, List<Class<? extends TransformationEventListener>> transformers) {
 		//Default init of a custom class loader
 		super(TransformingClassLoader.class.getClassLoader());
 		
@@ -70,14 +71,14 @@ public class TransformingClassLoader extends ClassLoader {
 		switch(filterType) {
 		case BLACKLIST:
 			//If any matches do not modify
-			for(Pattern p : filter) {
+			for(Pattern p : filter.keySet()) {
 				if(p.matcher(name).matches())
 					return false;
 			}
 			return true;
 		case WHITELIST:
 			// If any matches modify
-			for(Pattern p : filter) {
+			for(Pattern p : filter.keySet()) {
 				if (p.matcher(name).matches())
 					return true;
 			}
@@ -106,12 +107,10 @@ public class TransformingClassLoader extends ClassLoader {
 		}
 		
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		ClassVisitor printer;
 		Transformer trans;
 		try {
-			printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
-			trans = new Transformer(Opcodes.ASM4, printer);
-			trans.setAddLineInfo(true);
+			//ClassVisitor printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
+			trans = new Transformer(Opcodes.ASM4, cw);
 			for (Class<? extends TransformationEventListener> tel : transformers) {
 				tel.getConstructor(Transformer.class).newInstance(trans);
 			}
