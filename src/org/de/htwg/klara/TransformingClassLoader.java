@@ -112,7 +112,9 @@ public class TransformingClassLoader extends ClassLoader {
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		String filePath = name.replace('.', File.separatorChar) + ".class";
-		filePath = findClassFile(new File(filePath).toPath());
+		if (getResourceAsStream(filePath) == null) {
+			filePath = findClassFile(new File(filePath).toPath());
+		}
 	
 		byte[] classBytes = null;
 		try (InputStream stream = getResourceAsStream(filePath)) {
