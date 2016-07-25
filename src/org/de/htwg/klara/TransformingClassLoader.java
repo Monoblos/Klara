@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -18,20 +19,25 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
 public class TransformingClassLoader extends ClassLoader {
-	public enum FilterType {
+	public static enum FilterType {
 		BLACKLIST,
 		WHITELIST,
 		ALL,
 		NOTHING
 	}
 	
-	private boolean cache;
-	private FilterType filterType;
-	private Map<Pattern, LineSpecification> filter;
-	private Hashtable<String, Class<?>> cachedClasses = new Hashtable<>();
-	private List<Class<? extends TransformationEventListener>> transformers;
+	private final boolean cache;
+	private final FilterType filterType;
+	private final Map<Pattern, LineSpecification> filter;
+	private final Hashtable<String, Class<?>> cachedClasses = new Hashtable<>();
+	private final List<Class<? extends TransformationEventListener>> transformers;
+	private final LineSpecification defaultLineSpec;
 	
-	public TransformingClassLoader(boolean cache, FilterType filterType, Map<Pattern, LineSpecification> filter, List<Class<? extends TransformationEventListener>> transformers) {
+	public TransformingClassLoader(boolean cache, 
+			FilterType filterType, 
+			Map<Pattern, LineSpecification> filter, 
+			List<Class<? extends TransformationEventListener>> transformers, 
+			LineSpecification defaultLineSpec) {
 		//Default init of a custom class loader
 		super(TransformingClassLoader.class.getClassLoader());
 		
@@ -47,6 +53,7 @@ public class TransformingClassLoader extends ClassLoader {
 		this.filterType = filterType;
 		this.filter = filter;
 		this.transformers = transformers;
+		this.defaultLineSpec = defaultLineSpec;
 	}
 
 	/**
@@ -90,10 +97,23 @@ public class TransformingClassLoader extends ClassLoader {
 		}
 		return false;
 	}
+	
+	private String findClassFile(final Path relativeFilePath) {
+		String searchedSubpath[] = { "", "bin" };
+		for (String subpath : searchedSubpath) {
+			Path root = new File(subpath).toPath();
+			Path combined = root.resolve(relativeFilePath);
+			if (combined.toFile().exists())
+				return combined.toString();
+		}
+		return relativeFilePath.toString();
+	}
 		
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		String filePath = name.replace('.', File.separatorChar) + ".class";
+		filePath = findClassFile(new File(filePath).toPath());
+	
 		byte[] classBytes = null;
 		try (InputStream stream = getResourceAsStream(filePath)) {
 			int size = stream.available();
@@ -106,6 +126,15 @@ public class TransformingClassLoader extends ClassLoader {
 			throw new ClassNotFoundException("Unable to find class " + name, e);
 		}
 		
+		LineSpecification lineSpec = null;
+		for(Pattern p : filter.keySet()) {
+			if(p.matcher(name).matches())
+				lineSpec = filter.get(p);
+		}
+		if (lineSpec == null) {
+			lineSpec = defaultLineSpec;
+		}
+		
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Transformer trans;
 		try {
@@ -114,6 +143,7 @@ public class TransformingClassLoader extends ClassLoader {
 			for (Class<? extends TransformationEventListener> tel : transformers) {
 				tel.getConstructor(Transformer.class).newInstance(trans);
 			}
+			trans.setLineScope(lineSpec);
 		} catch (InstantiationException | IllegalAccessException
 				| IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {

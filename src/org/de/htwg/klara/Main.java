@@ -66,17 +66,24 @@ public class Main {
 				System.exit(2);
 			}
 		}
-		
-		TransformingClassLoader tcl = new TransformingClassLoader(true,
-				filterType,
-				filter,
-				listeners);
+
 		if (i >= args.length) {
 			System.out.println("No class to debug specified!");
 			usage();
 			System.exit(3);
 		}
-		Class<?> cls = tcl.loadClass(args[i++]);
+		String classToLoad = args[i++];
+
+		if (filterType == DEFAULT_FILTER) {
+			filterType = FilterType.WHITELIST;
+			filter.put(Pattern.compile(classToLoad), null);
+		}
+		TransformingClassLoader tcl = new TransformingClassLoader(true,
+				filterType,
+				filter,
+				listeners,
+				generalLinespec);
+		Class<?> cls = tcl.loadClass(classToLoad);
 		Method main = cls.getMethod("main", (new String[0]).getClass());
 		Object argArray[] = { Arrays.copyOfRange(args, i, args.length) };
 		main.invoke(null, argArray);
@@ -87,7 +94,7 @@ public class Main {
 		System.out.println(PROG_NAME + " can be used to track bugs in Java programs.");
 		System.out.println("");
 		System.out.println("Argument specification:");
-		System.out.println("java -jar Klara { -h | -H | { "
+		System.out.println("java -jar Klara.jar { -h | -H | { "
 				+ "[ -f regex [ lines ] [ -f regex [ lines ]]... | -F regex [ -F regex]... ] "
 				+ "[ -l lines ] [ -t ] [ -v ] } } "
 				+ "progname [argument [ agrumen]...]");
@@ -111,7 +118,7 @@ public class Main {
 		System.out.println("... more to come");
 		System.out.println("");
 		System.out.println("Example call:");
-		System.out.println("java -jar Klara -t -v -f my.cool.class 20-50 MyProg arg1 arg2");
+		System.out.println("java -jar Klara.jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
 		System.out.println("");
 		System.out.println("");
 

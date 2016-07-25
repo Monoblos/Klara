@@ -23,7 +23,8 @@ public class TestImpl {
 		TransformingClassLoader x = new TransformingClassLoader(true,
 				FilterType.WHITELIST,
 				filter,
-				listeners);
+				listeners,
+				new LineSpecification());
 		Class<?> foo = x.loadClass("org.de.htwg.klara.Foo");
 		Method main = foo.getMethod("main", (new String[0]).getClass());
 		Object argArray[] = { new String[0] };
