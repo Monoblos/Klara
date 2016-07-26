@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import org.de.htwg.klara.TransformingClassLoader.FilterType;
 import org.de.htwg.klara.linespec.LineSpecification;
@@ -56,10 +58,13 @@ public class Main {
 				generalLinespec = new LineSpecification(args[++i]);
 			} else if (args[i].equals("-t")) {
 				listeners.add(LineTracer.class);
+			} else if (args[i].equals("-b")) {
+				System.out.println(args[i] + " is not yet implemented.");
 			} else if (args[i].equals("-v")) {
 				listeners.add(VariableChangePrinter.class);
 			} else if (args[i].equals("-i")) {
 				interactiveStart();
+				System.exit(0);
 			} else {
 				System.out.println("Invalid option " + args[i]);
 				usage();
@@ -73,20 +78,9 @@ public class Main {
 			System.exit(3);
 		}
 		String classToLoad = args[i++];
-
-		if (filterType == DEFAULT_FILTER) {
-			filterType = FilterType.WHITELIST;
-			filter.put(Pattern.compile(classToLoad), null);
-		}
-		TransformingClassLoader tcl = new TransformingClassLoader(true,
-				filterType,
-				filter,
-				listeners,
-				generalLinespec);
-		Class<?> cls = tcl.loadClass(classToLoad);
-		Method main = cls.getMethod("main", (new String[0]).getClass());
-		Object argArray[] = { Arrays.copyOfRange(args, i, args.length) };
-		main.invoke(null, argArray);
+		String argArray[] = Arrays.copyOfRange(args, i, args.length);
+		
+		start(filterType, filter, classToLoad, listeners, generalLinespec, argArray);
 	}
 
 	public static void usage() {
@@ -111,6 +105,8 @@ public class Main {
 		System.out.println("    Specify a line set to be loged. Use minus to specify a range, use comma or semicolon to seperate blocks.");
 		System.out.println("  -t");
 		System.out.println("    Trace the exact line order by printing every line run.");
+		System.out.println("  -b");
+		System.out.println("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
 		System.out.println("  -v");
 		System.out.println("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
 		System.out.println("  -i");
@@ -122,7 +118,7 @@ public class Main {
 		System.out.println("");
 		System.out.println("");
 
-		System.out.println("Press any key to exit.");
+		System.out.println("Press Enter to exit.");
 		try {
 			System.in.read();
 		} catch (IOException e) {
@@ -130,9 +126,137 @@ public class Main {
 		}
 	}
 	
-	public static void interactiveStart() {
+	public static void interactiveStart() throws Exception {
+		Scanner s = new Scanner(System.in);
+		String choice = "";
+
+		String classToLoad = "";
+		List<String> arguments = new LinkedList<>();
+		List<Class<? extends TransformationEventListener>> listeners = new LinkedList<>();
+		Map<Pattern, LineSpecification> filter = new HashMap<>();
+		FilterType filterType = DEFAULT_FILTER;
+		LineSpecification generalLinespec = new LineSpecification();
+		
 		System.out.println("Welcome to the interactive mode of " + PROG_NAME + ".");
 		
-		System.out.println("This feature is not yet available.");
+		while (classToLoad.equals("")) {
+			System.out.println("What class do you want to debug?");
+			classToLoad = s.nextLine();
+		}
+		if (ask("Do you want to pass any arguments?", s)) {
+			System.out.println("Please specify one argument per line. Type \":exit\" to continue.");
+			while (true) {
+				choice = s.nextLine();
+				if (choice.equalsIgnoreCase(":exit"))
+					break;
+				arguments.add(choice);
+			}
+		}
+
+		while (!choice.equalsIgnoreCase("w") && !choice.equalsIgnoreCase("b") && !choice.equalsIgnoreCase("s")) {
+			System.out.println("Do you want to Whitelist (w) or Blacklist (b) classes to debug? You can also skip (s) this.");
+			choice = s.nextLine();
+		}
+		if (choice.equalsIgnoreCase("w")) {
+			filterType = FilterType.WHITELIST;
+			while (true) {
+				System.out.println("Please provide a Pattern to whitelist or type exit to continue.");
+				choice = s.nextLine();
+				if (choice.equalsIgnoreCase("exit")) {
+					break;
+				}
+				Pattern p;
+				try {
+					p = Pattern.compile(choice);
+				} catch (PatternSyntaxException e) {
+					System.out.println("Invalid pattern format. The Pattern must be a valid Regular Expression.");
+					continue;
+				}
+				if (ask("Do you want to set a specific Lineset for classes matching this filter?", s)) {
+					filter.put(p, readLineSpec(s));
+				} else {
+					filter.put(p, null);
+				}
+			}
+		} else if (choice.equalsIgnoreCase("b")) {
+			filterType = FilterType.BLACKLIST;
+			while (true) {
+				System.out.println("Please provide a Pattern to blacklist or type exit to continue.");
+				choice = s.nextLine();
+				if (choice.equalsIgnoreCase("exit")) {
+					break;
+				}
+				try {
+					filter.put(Pattern.compile(choice), null);
+				} catch (PatternSyntaxException e) {
+					System.out.println("Invalid pattern format. The Pattern must be a valid Regular Expression.");
+					continue;
+				}
+			}
+		}
+		//General linespec
+		if (ask("Do you want to set a general Lineset for all clases without a specific filter?", s)) {
+			generalLinespec = readLineSpec(s);
+		}
+		//
+		if (ask("Do you want to trace the exakt line order?", s)) {
+			listeners.add(LineTracer.class);
+		}
+		if (ask("Do you want to get general branching information?", s)) {
+			System.out.println("Not yet implemented.");
+		}
+		if (ask("Do you want to get information about every variable assignment?", s)) {
+			listeners.add(VariableChangePrinter.class);
+		}
+
+		start(filterType, filter, classToLoad, listeners, generalLinespec, arguments.toArray(new String[0]));
+	}
+	
+	private static LineSpecification readLineSpec(Scanner s) {
+		LineSpecification result = new LineSpecification();
+		String input = "";
+		while (true) {
+			System.out.println("Please enter line specification. Use - to specify ranges. Use , or ; to split blocks. Use \"exit\" to allow all. Example: 5-13,19;60-70;");
+			input = s.nextLine();
+			if (input.equalsIgnoreCase("exit"))
+				break;
+			try {
+				result = new LineSpecification(input);
+				break;
+			} catch (IllegalArgumentException e) {
+				System.out.println("Invalid format.");
+			}
+		}
+		return result;
+	}
+	
+	private static boolean ask(final String question, final Scanner s) {
+		String choice = "";
+		while (!choice.equalsIgnoreCase("y") && !choice.equalsIgnoreCase("n")) {
+			System.out.println(question + " (y/n)");
+			choice = s.nextLine();
+		}
+		return choice.equalsIgnoreCase("y");
+	}
+	
+	private static void start(FilterType filterType,
+			Map<Pattern, LineSpecification> filter,
+			String classToLoad,
+			List<Class<? extends TransformationEventListener>> listeners,
+			LineSpecification generalLinespec,
+			String[] arguments) throws Exception {
+		if (filterType == DEFAULT_FILTER) {
+			filterType = FilterType.WHITELIST;
+			filter.put(Pattern.compile(classToLoad.replace(".", "\\.")), null);
+		}
+		TransformingClassLoader tcl = new TransformingClassLoader(true,
+				filterType,
+				filter,
+				listeners,
+				generalLinespec);
+		Class<?> cls = tcl.loadClass(classToLoad);
+		Method main = cls.getMethod("main", (new String[0]).getClass());
+		Object argArray[] = { arguments };
+		main.invoke(null, argArray);
 	}
 }

@@ -108,14 +108,16 @@ public class TransformingClassLoader extends ClassLoader {
 		}
 		return relativeFilePath.toString();
 	}
-		
+
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
+		//Try to find the class file
 		String filePath = name.replace('.', File.separatorChar) + ".class";
 		if (getResourceAsStream(filePath) == null) {
 			filePath = findClassFile(new File(filePath).toPath());
 		}
 	
+		//Load the class
 		byte[] classBytes = null;
 		try (InputStream stream = getResourceAsStream(filePath)) {
 			int size = stream.available();
@@ -128,6 +130,7 @@ public class TransformingClassLoader extends ClassLoader {
 			throw new ClassNotFoundException("Unable to find class " + name, e);
 		}
 		
+		//Get the line-filter that will be used for this class
 		LineSpecification lineSpec = null;
 		for(Pattern p : filter.keySet()) {
 			if(p.matcher(name).matches())
@@ -150,7 +153,7 @@ public class TransformingClassLoader extends ClassLoader {
 				| IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
 			// We exactly know the method and parameters, so this should never fail.
-			System.out.println("Somthing somewhere went terribly wrong with the given visitor.");
+			System.err.println("Somthing somewhere went terribly wrong with the given observer.");
 			e.printStackTrace();
 			return null;
 		}
