@@ -1,6 +1,7 @@
 package org.de.htwg.klara;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -110,7 +111,7 @@ public class Main {
 		System.out.println("  -v");
 		System.out.println("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
 		System.out.println("  -i");
-		System.out.println("    Use interactive mode instead of detailed call.");
+		System.out.println("    Use interactive mode instead of detailed call. Will ignore other arguments.");
 		System.out.println("... more to come");
 		System.out.println("");
 		System.out.println("Example call:");
@@ -257,6 +258,19 @@ public class Main {
 		Class<?> cls = tcl.loadClass(classToLoad);
 		Method main = cls.getMethod("main", (new String[0]).getClass());
 		Object argArray[] = { arguments };
-		main.invoke(null, argArray);
+		try {
+			main.invoke(null, argArray);
+		} catch (InvocationTargetException e) {
+			//Cut out the Stacktrace created by wrapping the program
+			Exception cause = (Exception)e.getCause();
+			StackTraceElement[] trace = cause.getStackTrace();
+			for (int i = 0; i < trace.length; i++) {
+				if (trace[i].getClassName().equals(cls.getName()) && trace[i].getMethodName().equals("main")) {
+					//cause.setStackTrace(Arrays.copyOfRange(trace, 0, i + 1));
+					break;
+				}
+			}
+			throw cause;
+		}
 	}
 }

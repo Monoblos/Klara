@@ -15,6 +15,7 @@ import org.de.htwg.klara.linespec.LineSpecification;
 import org.de.htwg.klara.transformers.Transformer;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
@@ -125,9 +126,9 @@ public class TransformingClassLoader extends ClassLoader {
 			try (DataInputStream in = new DataInputStream(stream)) {
 				in.readFully(classBytes);
 			}
-		} catch (IOException e) {
+		} catch (IOException | NullPointerException e ) {
 			e.printStackTrace();
-			throw new ClassNotFoundException("Unable to find class " + name, e);
+			throw new ClassNotFoundException("Unable to find class " + name);
 		}
 		
 		//Get the line-filter that will be used for this class
@@ -143,8 +144,8 @@ public class TransformingClassLoader extends ClassLoader {
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Transformer trans;
 		try {
-			//ClassVisitor printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
-			trans = new Transformer(Opcodes.ASM4, cw);
+			ClassVisitor printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
+			trans = new Transformer(Opcodes.ASM4, printer);
 			for (Class<? extends TransformationEventListener> tel : transformers) {
 				tel.getConstructor(Transformer.class).newInstance(trans);
 			}

@@ -1,22 +1,34 @@
 package org.de.htwg.klara;
 
+import java.awt.Point;
+import java.util.Random;
+
 public class Foo {
+	private static String clasVar = "abc123";
+	private final Random r;
+	private final Point initValue = new Point();
+	
+	public Foo() {
+		r = new Random();
+	}
+	
 	public static void main(String args[]) throws InterruptedException {
 		System.out.println("Foo got run. Class loader: " + Foo.class.getClassLoader());
 
-		String x = "bla";
 		long counter = 0;
 		
 		for(int i = 0; i < 10; i++) {
 			counter += 2;
 		}
 		
+		Integer k = new Integer(17);
+		
 		Thread.sleep(200);
 		
 		if (counter > 2)
-			x = "blub";
+			clasVar = "blub";
 		
-		boolean result = x.equals("a");
+		boolean result = clasVar.equals("a");
 		System.out.println("Result of usless compuation: " + result);
 	}
 	

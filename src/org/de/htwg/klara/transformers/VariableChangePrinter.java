@@ -1,7 +1,5 @@
 package org.de.htwg.klara.transformers;
 
-import java.util.Arrays;
-
 import org.de.htwg.klara.transformers.events.ScopeReachedEvent;
 import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
@@ -14,6 +12,12 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 public class VariableChangePrinter implements TransformationEventListener {
+	private static enum VarType {
+		OBJECT,
+		STRING,
+		CHAR,
+		OTHER
+	}
 	private final Transformer trans;
 	
 	public VariableChangePrinter(Transformer trans) {
@@ -43,28 +47,63 @@ public class VariableChangePrinter implements TransformationEventListener {
 	
 	private InsnList generateVariablePrint(LocalVariableNode var) {
 		boolean isArray = false;
+		//0 = Object, 1 = String, 2 = Char, 10 = Other
+		VarType type = VarType.OBJECT;
 		
 		if (var.desc.startsWith("[")) {
-			int[] test = new int[4];
-			Arrays.toString(test);
 			isArray = true;
+		} else if (var.desc.equals("Ljava/lang/String;")) {
+			type = VarType.STRING;
+		} else if (var.desc.equals("C")) {
+			type = VarType.CHAR;
 		}
 
 		String builderMethod = "Ljava/lang/Object;";
-		if (var.desc.length() == 1)
+		if (var.desc.length() == 1) {
 			builderMethod = var.desc;
-		else if (isArray || var.desc.equals("Ljava/lang/String;"))
+			type = VarType.OTHER;
+		} else if (isArray || type == VarType.STRING)
 			builderMethod = "Ljava/lang/String;";
 
 		InsnList il = new InsnList();
-		il.add(new LdcInsnNode("Value of variable " + var.name + " now at: "));
+		il.add(new LdcInsnNode("New value of " + var.name + ": "));
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+		if (type == VarType.STRING || type == VarType.CHAR) {
+			if (type == VarType.STRING)
+				il.add(new LdcInsnNode("\""));
+			else if (type == VarType.CHAR)
+				il.add(new LdcInsnNode("'"));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+		}
 		il.add(TransformUtils.load(var));
 		if (isArray) {
 			il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/util/Arrays", "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;", false));
 		}
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(" + builderMethod + ")Ljava/lang/StringBuilder;", false));
+		if (type == VarType.STRING || type == VarType.CHAR) {
+			if (type == VarType.STRING)
+				il.add(new LdcInsnNode("\""));
+			else if (type == VarType.CHAR)
+				il.add(new LdcInsnNode("'"));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+		}
+		if (type == VarType.OBJECT) {
+			//Add the typical Class@Hash
+			il.add(new LdcInsnNode(" ("));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+			il.add(TransformUtils.load(var));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "getClass", "()Ljava/lang/Class;", false));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Class", "getName", "()Ljava/lang/String;", false));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+			il.add(new LdcInsnNode("@"));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+			il.add(TransformUtils.load(var));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/Object", "hashCode", "()I", false));
+			il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/lang/Integer", "toHexString", "(I)Ljava/lang/String;", false));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+			il.add(new LdcInsnNode(")"));
+			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+		}
 		return il;
 	}
-
 }
