@@ -25,6 +25,6 @@ Usage
 
 Execution using klara usually looks like this:
 
-    java Klara com.example.Test arg1 arg2
+    java -jar Klara.jar -v -t com.example.Test arg1 arg2
 
 This would call the main-method of the class "com.example.Test" parsing the arguments "arg1" and "arg2".
