@@ -2,10 +2,13 @@ package org.de.htwg.klara;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -100,35 +103,45 @@ public class TransformingClassLoader extends ClassLoader {
 	}
 	
 	private String findClassFile(final Path relativeFilePath) {
-		String searchedSubpath[] = { "", "bin" };
+		String searchedSubpath[] = { "." };
 		for (String subpath : searchedSubpath) {
-			Path root = new File(subpath).toPath();
+			Path root = Paths.get(subpath);
 			Path combined = root.resolve(relativeFilePath);
-			if (combined.toFile().exists())
-				return combined.toString();
+			if (Files.exists(combined))
+				return combined.toAbsolutePath().toString();
 		}
-		return relativeFilePath.toString();
+		return relativeFilePath.toAbsolutePath().toString();
 	}
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {
 		//Try to find the class file
 		String filePath = name.replace('.', File.separatorChar) + ".class";
-		if (getResourceAsStream(filePath) == null) {
-			filePath = findClassFile(new File(filePath).toPath());
+		InputStream stream = getResourceAsStream(filePath);
+		if (stream == null) {
+			//Not found by standard class loader.
+			filePath = findClassFile(Paths.get(filePath));
+			try {
+				stream = new FileInputStream(filePath);
+			} catch (IOException e) {
+				throw new ClassNotFoundException("Unable to find class " + name);
+			}
 		}
-	
+
 		//Load the class
 		byte[] classBytes = null;
-		try (InputStream stream = getResourceAsStream(filePath)) {
+		try {
 			int size = stream.available();
 			classBytes = new byte[size];
 			try (DataInputStream in = new DataInputStream(stream)) {
 				in.readFully(classBytes);
 			}
 		} catch (IOException | NullPointerException e ) {
-			e.printStackTrace();
 			throw new ClassNotFoundException("Unable to find class " + name);
+		} finally {
+			try {
+				stream.close();
+			} catch (IOException consumed) { /*Dead anyway*/ }
 		}
 		
 		//Get the line-filter that will be used for this class
@@ -146,6 +159,7 @@ public class TransformingClassLoader extends ClassLoader {
 		try {
 			ClassVisitor printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
 			trans = new Transformer(Opcodes.ASM4, printer);
+			//trans = new Transformer(Opcodes.ASM4, cw);
 			for (Class<? extends TransformationEventListener> tel : transformers) {
 				tel.getConstructor(Transformer.class).newInstance(trans);
 			}

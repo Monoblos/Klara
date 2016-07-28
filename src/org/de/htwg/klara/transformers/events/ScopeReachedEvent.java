@@ -3,7 +3,7 @@ package org.de.htwg.klara.transformers.events;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LocalVariableNode;
 
-public class ScopeReachedEvent implements TransformationEvent {
+public final class ScopeReachedEvent implements TransformationEvent {
 	private final LocalVariableNode var;
 	private final LabelNode node;
 

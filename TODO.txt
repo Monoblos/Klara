@@ -1,15 +1,16 @@
 Offene Probleme:
-* init und clinit modifizieren
+* DONE init und clinit modifizieren
 * klassen-variablen Änderungen tracken (static und nicht static)
 * -b für branching
-* -a für auto-detect common problems (endlos while/for, switch WO default, string cmp with ==)
-* deeper automatic search for class
-* adjust help output to commandline width
+* SKIPED -a für auto-detect common problems (endlos while/for, switch WO default, string cmp with ==)
+* SKIPED deeper automatic search for class
+* DONE adjust help output to commandline width
 * Create HTML help page
 * DONE tweak variable print format
 * Warning when using -v on proram with no debug information
 * -o to reroute debug output
 * DONE "clean" runtime exceptions of stacktrace from wrapping code.
+* Add Javadoc for classes and packages
 
 Zukünftige Erweiterungen:
 * Invisble Asserts

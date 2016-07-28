@@ -15,6 +15,7 @@ import java.util.regex.PatternSyntaxException;
 import org.de.htwg.klara.TransformingClassLoader.FilterType;
 import org.de.htwg.klara.linespec.LineSpecification;
 import org.de.htwg.klara.transformers.LineTracer;
+import org.de.htwg.klara.transformers.OutputStreamProvider;
 import org.de.htwg.klara.transformers.VariableChangePrinter;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 
@@ -37,7 +38,7 @@ public class Main {
 				System.exit(0);
 			} else if (args[i].equals("-f")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.WHITELIST) {
-					System.out.println("Unable to use multiple kinds of filtering in one call.");
+					System.err.println("Unable to use multiple kinds of filtering in one call.");
 					System.exit(1);
 				}
 				filterType = FilterType.WHITELIST;
@@ -50,13 +51,15 @@ public class Main {
 				filter.put(p, filterLines);
 			} else if (args[i].equals("-F")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.BLACKLIST) {
-					System.out.println("Unable to use multiple kinds of filtering in one call.");
+					System.err.println("Unable to use multiple kinds of filtering in one call.");
 					System.exit(1);
 				}
 				filterType = FilterType.BLACKLIST;
 				filter.put(Pattern.compile(args[++i]), null);
 			} else if (args[i].equals("-l")) {
 				generalLinespec = new LineSpecification(args[++i]);
+			} else if (args[i].equals("-o")) {
+				OutputStreamProvider.stream = System.err;
 			} else if (args[i].equals("-t")) {
 				listeners.add(LineTracer.class);
 			} else if (args[i].equals("-b")) {
@@ -67,14 +70,14 @@ public class Main {
 				interactiveStart();
 				System.exit(0);
 			} else {
-				System.out.println("Invalid option " + args[i]);
+				System.err.println("Invalid option " + args[i]);
 				usage();
 				System.exit(2);
 			}
 		}
 
 		if (i >= args.length) {
-			System.out.println("No class to debug specified!");
+			System.err.println("No class to debug specified!");
 			usage();
 			System.exit(3);
 		}
@@ -85,41 +88,43 @@ public class Main {
 	}
 
 	public static void usage() {
-		System.out.println("This is the commandline interface of " + PROG_NAME + ".");
-		System.out.println(PROG_NAME + " can be used to track bugs in Java programs.");
-		System.out.println("");
-		System.out.println("Argument specification:");
-		System.out.println("java -jar Klara.jar { -h | -H | { "
+		fixwidthPrint("This is the commandline interface of " + PROG_NAME + ".");
+		fixwidthPrint(PROG_NAME + " can be used to track bugs in Java programs.");
+		fixwidthPrint("");
+		fixwidthPrint("Argument specification:");
+		fixwidthPrint("java -jar Klara.jar { -h | -H | { "
 				+ "[ -f regex [ lines ] [ -f regex [ lines ]]... | -F regex [ -F regex]... ] "
 				+ "[ -l lines ] [ -t ] [ -v ] } } "
 				+ "progname [argument [ agrumen]...]");
-		System.out.println("");
-		System.out.println("Argument details:");
-		System.out.println("  -h | -H");
-		System.out.println("    Show this help message");
-		System.out.println("  -f <regex> (<lines>)");
-		System.out.println("    Specify a whitelist rule. Can be used multiple times for multiple entries. Can not be combined with -F."
+		fixwidthPrint("");
+		fixwidthPrint("Argument details:");
+		fixwidthPrint("  -h | -H");
+		fixwidthPrint("    Show this help message");
+		fixwidthPrint("  -f <regex> [<lines>]");
+		fixwidthPrint("    Specify a whitelist rule. Can be used multiple times for multiple entries. Can not be combined with -F."
 				+ " Can optionaly specify a specific lineset to debug in matching classes, overriding those set by -l");
-		System.out.println("  -F <regex>");
-		System.out.println("    Specify a blacklist rule. Can be used multiple times for multiple entries. Can not be combined with -f");
-		System.out.println("  -l <lines>");
-		System.out.println("    Specify a line set to be loged. Use minus to specify a range, use comma or semicolon to seperate blocks.");
-		System.out.println("  -t");
-		System.out.println("    Trace the exact line order by printing every line run.");
-		System.out.println("  -b");
-		System.out.println("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
-		System.out.println("  -v");
-		System.out.println("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
-		System.out.println("  -i");
-		System.out.println("    Use interactive mode instead of detailed call. Will ignore other arguments.");
-		System.out.println("... more to come");
-		System.out.println("");
-		System.out.println("Example call:");
-		System.out.println("java -jar Klara.jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
-		System.out.println("");
-		System.out.println("");
+		fixwidthPrint("  -F <regex>");
+		fixwidthPrint("    Specify a blacklist rule. Can be used multiple times for multiple entries. Can not be combined with -f");
+		fixwidthPrint("  -l <lines>");
+		fixwidthPrint("    Specify a line set to be loged. Use minus to specify a range, use comma or semicolon to seperate blocks.");
+		fixwidthPrint("  -t");
+		fixwidthPrint("    Trace the exact line order by printing every line run.");
+		fixwidthPrint("  -o [<file>]");
+		fixwidthPrint("    Write output to stderr or a file.");
+		fixwidthPrint("  -b");
+		fixwidthPrint("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
+		fixwidthPrint("  -v");
+		fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
+		fixwidthPrint("  -i");
+		fixwidthPrint("    Use interactive mode instead of detailed call. Will ignore other arguments.");
+		fixwidthPrint("... more to come");
+		fixwidthPrint("");
+		fixwidthPrint("Example call:");
+		fixwidthPrint("java -jar Klara.jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
+		fixwidthPrint("");
+		fixwidthPrint("");
 
-		System.out.println("Press Enter to exit.");
+		fixwidthPrint("Press Enter to exit.");
 		try {
 			System.in.read();
 		} catch (IOException e) {
@@ -170,7 +175,7 @@ public class Main {
 				try {
 					p = Pattern.compile(choice);
 				} catch (PatternSyntaxException e) {
-					System.out.println("Invalid pattern format. The Pattern must be a valid Regular Expression.");
+					System.err.println("Invalid pattern format. The Pattern must be a valid Regular Expression.");
 					continue;
 				}
 				if (ask("Do you want to set a specific Lineset for classes matching this filter?", s)) {
@@ -190,7 +195,7 @@ public class Main {
 				try {
 					filter.put(Pattern.compile(choice), null);
 				} catch (PatternSyntaxException e) {
-					System.out.println("Invalid pattern format. The Pattern must be a valid Regular Expression.");
+					System.err.println("Invalid pattern format. The Pattern must be a valid Regular Expression.");
 					continue;
 				}
 			}
@@ -202,6 +207,13 @@ public class Main {
 		//
 		if (ask("Do you want to trace the exakt line order?", s)) {
 			listeners.add(LineTracer.class);
+		}
+		if (ask("Do you want to reroute output?", s)) {
+			if (ask("Choose location? If no output goes to stderr.", s)) {
+				OutputStreamProvider.stream = System.err;
+			} else {
+				
+			}
 		}
 		if (ask("Do you want to get general branching information?", s)) {
 			System.out.println("Not yet implemented.");
@@ -225,7 +237,7 @@ public class Main {
 				result = new LineSpecification(input);
 				break;
 			} catch (IllegalArgumentException e) {
-				System.out.println("Invalid format.");
+				System.err.println("Invalid format.");
 			}
 		}
 		return result;
@@ -272,5 +284,32 @@ public class Main {
 			}
 			throw cause;
 		}
+	}
+	
+	private static void fixwidthPrint(String text) {
+		fixwidthPrint(text, 80);
+	}
+	
+	private static void fixwidthPrint(String text, final int lineLength) {
+		final int frontSpaces = 4;
+		if (text.length() < lineLength) {
+			System.out.println(text);
+			return;
+		}
+		String outBlock = text.substring(0, lineLength);
+		text = text.substring(lineLength);
+		System.out.println(outBlock);
+		while(text.length() > lineLength - frontSpaces) {
+			outBlock = text.substring(0, lineLength - frontSpaces);
+			text = text.substring(lineLength - frontSpaces);
+			for (int i = 0; i < frontSpaces; i++) {
+				outBlock = " " + outBlock;
+			}
+			System.out.println(outBlock);
+		}
+		for (int i = 0; i < frontSpaces; i++) {
+			System.out.print(" ");
+		}
+		System.out.println(text);
 	}
 }

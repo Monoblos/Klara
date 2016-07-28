@@ -1,9 +1,11 @@
 package org.de.htwg.klara.transformers;
 
+import org.de.htwg.klara.transformers.events.ClassVarChangedEvent;
 import org.de.htwg.klara.transformers.events.ScopeReachedEvent;
 import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LdcInsnNode;
@@ -11,7 +13,7 @@ import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-public class VariableChangePrinter implements TransformationEventListener {
+public final class VariableChangePrinter implements TransformationEventListener {
 	private static enum VarType {
 		OBJECT,
 		STRING,
@@ -20,7 +22,7 @@ public class VariableChangePrinter implements TransformationEventListener {
 	}
 	private final Transformer trans;
 	
-	public VariableChangePrinter(Transformer trans) {
+	public VariableChangePrinter(final Transformer trans) {
 		this.trans = trans;
 		trans.addListener(this);
 	}
@@ -42,16 +44,18 @@ public class VariableChangePrinter implements TransformationEventListener {
 		} else if (event.getType() == TransformationEvent.SCOPE_REACHED) {
 			ScopeReachedEvent sre = (ScopeReachedEvent)event;
 			trans.printLine(sre.getNode(), generateVariablePrint(sre.getVar()));
+		} else if (event.getType() == TransformationEvent.CLS_VAR_CHANGED) {
+			FieldInsnNode node = (FieldInsnNode)event.getNode();
 		}
 	}
 	
 	private InsnList generateVariablePrint(LocalVariableNode var) {
 		boolean isArray = false;
-		//0 = Object, 1 = String, 2 = Char, 10 = Other
 		VarType type = VarType.OBJECT;
 		
 		if (var.desc.startsWith("[")) {
 			isArray = true;
+			type = VarType.OTHER;
 		} else if (var.desc.equals("Ljava/lang/String;")) {
 			type = VarType.STRING;
 		} else if (var.desc.equals("C")) {

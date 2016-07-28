@@ -6,10 +6,13 @@ import java.util.Random;
 public class Foo {
 	private static String clasVar = "abc123";
 	private final Random r;
-	private final Point initValue = new Point();
+	private Point initValue = new Point();
 	
 	public Foo() {
 		r = new Random();
+		initValue.x = 3;
+		int k = 'k';
+		System.out.println("Well than... " + k);
 	}
 	
 	public static void main(String args[]) throws InterruptedException {
@@ -30,6 +33,7 @@ public class Foo {
 		
 		boolean result = clasVar.equals("a");
 		System.out.println("Result of usless compuation: " + result);
+		new Foo();
 	}
 	
 	protected boolean test(int a, int b, double x) {

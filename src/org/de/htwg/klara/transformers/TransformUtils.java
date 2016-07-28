@@ -12,7 +12,7 @@ public class TransformUtils {
 	private TransformUtils() { };
 	
 	public static String formatLocation(String className, int line) {
-		return "@" + className + ":" + line + ": ";
+		return "#" + className + "@L" + line + ": ";
 	}
 	
 	public static InsnList generatePrintWithLocation(String className, int line, String text) {

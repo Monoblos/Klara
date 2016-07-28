@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.de.htwg.klara.linespec.LineSpecification;
+import org.de.htwg.klara.transformers.events.ClassVarChangedEvent;
 import org.de.htwg.klara.transformers.events.IincInsnEvent;
 import org.de.htwg.klara.transformers.events.LineEndEvent;
 import org.de.htwg.klara.transformers.events.LineStartEvent;
@@ -95,15 +96,13 @@ public class Transformer extends ClassNode {
 	@SuppressWarnings("unchecked")
 	protected void transform() {
 		for (MethodNode mn : (List<MethodNode>) methods) {
-			if ("<clinit>".equals(mn.name) || "<init>".equals(mn.name)) {
-				continue;
-			}
 			methodTransform(mn);
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
 	synchronized protected void methodTransform(MethodNode mn) {
+		boolean waitingForSuperCall = "<init>".equals(mn.name);
 		currentMethod = mn;
 		currentScope.clear();
 		futureVariables.clear();
@@ -116,7 +115,10 @@ public class Transformer extends ClassNode {
 		Iterator<AbstractInsnNode> j = insns.iterator();
 		while (j.hasNext()) {
 			AbstractInsnNode in = j.next();
-			if (in.getType() == AbstractInsnNode.VAR_INSN) {
+			if (waitingForSuperCall) {
+				if(in.getOpcode() == Opcodes.INVOKESPECIAL)
+					waitingForSuperCall = false;
+			} else if (in.getType() == AbstractInsnNode.VAR_INSN) {
 				VarInsnNode varIn = (VarInsnNode)in;
 				sendEvent(new VarInsnEvent(varIn));
 			} else if (in.getType() == AbstractInsnNode.IINC_INSN) {
@@ -149,6 +151,12 @@ public class Transformer extends ClassNode {
 				setLine(lnn);
 
 				sendEvent(new LineStartEvent(currentLine));
+			} else if (in.getType() == AbstractInsnNode.FIELD_INSN) {
+				FieldInsnNode fin = (FieldInsnNode)in;
+				if ((fin.getOpcode() == Opcodes.PUTSTATIC || fin.getOpcode() == Opcodes.PUTFIELD)
+						&& fin.owner.equals(className)) {
+					sendEvent(new ClassVarChangedEvent(fin));
+				}
 			}
 		}
 	}
@@ -160,7 +168,7 @@ public class Transformer extends ClassNode {
 	 */
 	public void printLine(AbstractInsnNode where, InsnList what) {
 		InsnList il = new InsnList();
-		il.add(new FieldInsnNode(Opcodes.GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
+		il.add(new FieldInsnNode(Opcodes.GETSTATIC, "org/de/htwg/klara/transformers/OutputStreamProvider", "stream", "Ljava/io/PrintStream;"));
 		il.add(new TypeInsnNode(Opcodes.NEW, "java/lang/StringBuilder"));
 		il.add(new InsnNode(Opcodes.DUP));
 		il.add(new LdcInsnNode(TransformUtils.formatLocation(getClassName(), currentLine != null ? currentLine.line : 0)));

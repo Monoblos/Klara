@@ -2,7 +2,7 @@ package org.de.htwg.klara.transformers.events;
 
 import org.objectweb.asm.tree.LineNumberNode;
 
-public class LineStartEvent implements TransformationEvent {
+public final class LineStartEvent implements TransformationEvent {
 	private final LineNumberNode node;
 
 	public LineStartEvent(final LineNumberNode node) {

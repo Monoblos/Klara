@@ -2,7 +2,7 @@ package org.de.htwg.klara.transformers.events;
 
 import org.objectweb.asm.tree.VarInsnNode;
 
-public class VarInsnEvent implements TransformationEvent {
+public final class VarInsnEvent implements TransformationEvent {
 	private final VarInsnNode node;
 
 	public VarInsnEvent(final VarInsnNode node) {
