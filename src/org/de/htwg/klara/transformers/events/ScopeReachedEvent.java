@@ -1,13 +1,13 @@
 package org.de.htwg.klara.transformers.events;
 
+import org.de.htwg.klara.transformers.variable.LocalVariable;
 import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LocalVariableNode;
 
 public final class ScopeReachedEvent implements TransformationEvent {
-	private final LocalVariableNode var;
+	private final LocalVariable var;
 	private final LabelNode node;
 
-	public ScopeReachedEvent(final LabelNode node, final LocalVariableNode var) {
+	public ScopeReachedEvent(final LabelNode node, final LocalVariable var) {
 		this.var = var;
 		this.node = node;
 	}
@@ -17,7 +17,7 @@ public final class ScopeReachedEvent implements TransformationEvent {
 		return node;
 	}
 
-	public LocalVariableNode getVar() {
+	public LocalVariable getVar() {
 		return var;
 	}
 

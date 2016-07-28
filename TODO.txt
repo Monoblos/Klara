@@ -1,6 +1,6 @@
 Offene Probleme:
 * DONE init und clinit modifizieren
-* klassen-variablen Änderungen tracken (static und nicht static)
+* DONE klassen-variablen Änderungen tracken (static und nicht static)
 * -b für branching
 * SKIPED -a für auto-detect common problems (endlos while/for, switch WO default, string cmp with ==)
 * SKIPED deeper automatic search for class

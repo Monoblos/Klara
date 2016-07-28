@@ -10,7 +10,7 @@ public interface TransformationEvent {
 	public static final int LINE_START = 5;
 	public static final int LINE_END = 6;
 	public static final int PRINT_ADDED = 7;
-	public static final int CLS_VAR_CHANGED = 7;
+	public static final int CLS_VAR_CHANGED = 8;
 	
 	public AbstractInsnNode getNode();
 	public int getType();

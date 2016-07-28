@@ -16,6 +16,7 @@ import org.de.htwg.klara.transformers.events.ScopeReachedEvent;
 import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.de.htwg.klara.transformers.events.VarInsnEvent;
+import org.de.htwg.klara.transformers.variable.LocalVariable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -39,7 +40,7 @@ public class Transformer extends ClassNode {
 	protected LineSpecification lineScope = new LineSpecification();
 	protected LineNumberNode currentLine = null;
 	protected MethodNode currentMethod = null;
-	Map<Integer, LocalVariableNode> currentScope = new HashMap<>();
+	Map<Integer, LocalVariable> currentScope = new HashMap<>();
 	List<LocalVariableNode> futureVariables = new LinkedList<>();
 	private boolean inLineScope = false;
 	
@@ -79,7 +80,7 @@ public class Transformer extends ClassNode {
 	@Override
 	public void visit(int version, int access, String name, String signature,
 			String superName, String[] interfaces) {
-		this.className = name.replace('/', '.');
+		this.className = name;
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 	
@@ -129,7 +130,7 @@ public class Transformer extends ClassNode {
 				LocalVariableNode tmpNode;
 				Integer[] scopeKeys = currentScope.keySet().toArray(new Integer[0]);
 				for (int i = 0; i < scopeKeys.length; ++i) {
-					tmpNode = currentScope.get(scopeKeys[i]);
+					tmpNode = currentScope.get(scopeKeys[i]).getNode();
 					if (label.equals(tmpNode.end)) {
 						currentScope.remove(scopeKeys[i]);
 					}
@@ -137,10 +138,10 @@ public class Transformer extends ClassNode {
 				for (int i = 0; i < futureVariables.size(); ++i) {
 					tmpNode = futureVariables.get(i);
 					if (label.equals(tmpNode.start)) {
-						currentScope.put(tmpNode.index, tmpNode);
+						currentScope.put(tmpNode.index, new LocalVariable(tmpNode));
 						futureVariables.remove(tmpNode);
 						--i;
-						sendEvent(new ScopeReachedEvent(label, tmpNode));
+						sendEvent(new ScopeReachedEvent(label, new LocalVariable(tmpNode)));
 					}
 				}
 			} else if (in.getType() == AbstractInsnNode.LINE) {
@@ -181,10 +182,10 @@ public class Transformer extends ClassNode {
 	}
 	
 	public String getClassName() {
-		return className;
+		return className.replace('/', '.');
 	}
 	
-	public LocalVariableNode getVar(int index) {
+	public LocalVariable getVar(int index) {
 		return currentScope.get(index);
 	}
 }
