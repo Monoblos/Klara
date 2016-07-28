@@ -1,6 +1,7 @@
 package org.de.htwg.klara;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ public class Main {
 		Map<Pattern, LineSpecification> filter = new HashMap<>();
 		FilterType filterType = DEFAULT_FILTER;
 		LineSpecification generalLinespec = new LineSpecification();
+		boolean customStream = false;
 		
 		int i;
 		for (i = 0; i < args.length; i++) {
@@ -35,11 +37,11 @@ public class Main {
 				break;
 			if (args[i].equalsIgnoreCase("-h")) {
 				usage();
-				System.exit(0);
+				exit(0, customStream);
 			} else if (args[i].equals("-f")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.WHITELIST) {
 					System.err.println("Unable to use multiple kinds of filtering in one call.");
-					System.exit(1);
+					exit(1, customStream);
 				}
 				filterType = FilterType.WHITELIST;
 				Pattern p = Pattern.compile(args[++i]);
@@ -52,14 +54,20 @@ public class Main {
 			} else if (args[i].equals("-F")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.BLACKLIST) {
 					System.err.println("Unable to use multiple kinds of filtering in one call.");
-					System.exit(1);
+					exit(1, customStream);
 				}
 				filterType = FilterType.BLACKLIST;
 				filter.put(Pattern.compile(args[++i]), null);
 			} else if (args[i].equals("-l")) {
 				generalLinespec = new LineSpecification(args[++i]);
 			} else if (args[i].equals("-o")) {
-				OutputStreamProvider.stream = System.err;
+				String writeTo = args[++i];
+				if (writeTo.equals("e")) {
+					OutputStreamProvider.stream = System.err;
+				} else {
+					customStream = true;
+					OutputStreamProvider.stream = new PrintStream(writeTo);
+				}
 			} else if (args[i].equals("-t")) {
 				listeners.add(LineTracer.class);
 			} else if (args[i].equals("-b")) {
@@ -68,23 +76,30 @@ public class Main {
 				listeners.add(VariableChangePrinter.class);
 			} else if (args[i].equals("-i")) {
 				interactiveStart();
-				System.exit(0);
+				exit(0, customStream);
 			} else {
 				System.err.println("Invalid option " + args[i]);
 				usage();
-				System.exit(2);
+				exit(2, customStream);
 			}
 		}
 
 		if (i >= args.length) {
 			System.err.println("No class to debug specified!");
 			usage();
-			System.exit(3);
+			exit(3, customStream);
 		}
 		String classToLoad = args[i++];
 		String argArray[] = Arrays.copyOfRange(args, i, args.length);
 		
 		start(filterType, filter, classToLoad, listeners, generalLinespec, argArray);
+		exit(0, customStream);
+	}
+	
+	private static void exit(int code, boolean customStream) {
+		if (customStream)
+			OutputStreamProvider.stream.close();
+		System.exit(code);
 	}
 
 	public static void usage() {
@@ -109,7 +124,7 @@ public class Main {
 		fixwidthPrint("    Specify a line set to be loged. Use minus to specify a range, use comma or semicolon to seperate blocks.");
 		fixwidthPrint("  -t");
 		fixwidthPrint("    Trace the exact line order by printing every line run.");
-		fixwidthPrint("  -o [<file>]");
+		fixwidthPrint("  -o e | <file>");
 		fixwidthPrint("    Write output to stderr or a file.");
 		fixwidthPrint("  -b");
 		fixwidthPrint("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
@@ -117,7 +132,6 @@ public class Main {
 		fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
 		fixwidthPrint("  -i");
 		fixwidthPrint("    Use interactive mode instead of detailed call. Will ignore other arguments.");
-		fixwidthPrint("... more to come");
 		fixwidthPrint("");
 		fixwidthPrint("Example call:");
 		fixwidthPrint("java -jar Klara.jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
