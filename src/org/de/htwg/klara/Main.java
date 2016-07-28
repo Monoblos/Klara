@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -66,7 +70,11 @@ public class Main {
 					OutputStreamProvider.stream = System.err;
 				} else {
 					customStream = true;
-					OutputStreamProvider.stream = new PrintStream(writeTo);
+					Path writeFile = Paths.get(writeTo);
+					Files.createDirectories(writeFile, (FileAttribute<?>)null);
+					if (!Files.exists(writeFile))
+						Files.createFile(writeFile, (FileAttribute<?>)null);
+					OutputStreamProvider.stream = new PrintStream(writeFile.toFile());
 				}
 			} else if (args[i].equals("-t")) {
 				listeners.add(LineTracer.class);
