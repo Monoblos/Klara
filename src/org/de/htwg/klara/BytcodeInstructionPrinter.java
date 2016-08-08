@@ -1,5 +1,6 @@
 package org.de.htwg.klara;
 
+import org.de.htwg.klara.utils.BytecodeUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;

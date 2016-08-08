@@ -17,6 +17,7 @@ import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.de.htwg.klara.transformers.events.VarInsnEvent;
 import org.de.htwg.klara.transformers.variable.LocalVariable;
+import org.de.htwg.klara.utils.TransformUtils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;

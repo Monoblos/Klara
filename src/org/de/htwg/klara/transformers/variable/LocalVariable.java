@@ -1,6 +1,6 @@
 package org.de.htwg.klara.transformers.variable;
 
-import org.de.htwg.klara.transformers.TransformUtils;
+import org.de.htwg.klara.utils.TransformUtils;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LocalVariableNode;
 

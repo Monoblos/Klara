@@ -1,14 +1,23 @@
-package org.de.htwg.klara;
+package org.de.htwg.klara.utils;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import org.objectweb.asm.Opcodes;
 
-public class BytecodeUtils implements Opcodes {
+/**
+ * Set of methods for working with bytecode and converting it to readable chunks.
+ * @author mrs
+ */
+public final class BytecodeUtils implements Opcodes {
 	private BytecodeUtils() { }
 	
-	public static String[] typeListToJava(String s) {
+	/**
+	 * Converts a list of types as declared in bytecode to an array of java names.
+	 * @param s	A string representing a list of types as used in bytecode.
+	 * @return	An array of Strings with printable names of all types,
+	 */
+	public static String[] typeListToJava(final String s) {
 		List<String> result = new LinkedList<>();
 		int currentStartIndex = 0;
 		int currentIndex = 0;
@@ -27,7 +36,14 @@ public class BytecodeUtils implements Opcodes {
 		return result.toArray(new String[0]);
 	}
 
-	public static String typeToJava(String s) {
+	/**
+	 * Convert given type descriptor to "normal" look. Does not validate if the given descriptor is valid.
+	 * <br>
+	 * This is identical to calling {@link BytecodeUtils#typeToJava(String, boolean) typeToJava(s, true)}
+	 * @param s	The type to translate
+	 * @return
+	 */
+	public static String typeToJava(final String s) {
 		return typeToJava(s, true);
 	}
 	
@@ -36,7 +52,7 @@ public class BytecodeUtils implements Opcodes {
 	 * @param s	The type descriptor.
 	 * @return	The readable java-type.
 	 */
-	public static String typeToJava(String s, boolean fullQualifiedClasses) {
+	public static String typeToJava(String s, final boolean fullQualifiedClasses) {
 		int arrayDepth = 0;
 		while (s.startsWith("[")) {
 			arrayDepth++;
@@ -91,7 +107,12 @@ public class BytecodeUtils implements Opcodes {
 		return s;
 	}
 	
-	public static String opcodeToType(int opcode) {
+	/**
+	 * Translates a OP-Code representing a type to the name of the code.
+	 * @param opcode	A valid type-op-code (4-11)
+	 * @return	The String representation of the name of the OP-Code
+	 */
+	public static String opcodeToType(final int opcode) {
 		switch (opcode) {
 		case T_BOOLEAN:
 			return "T_BOOLEAN";
@@ -115,7 +136,13 @@ public class BytecodeUtils implements Opcodes {
 		}
 	}
 	
-	public static String accessBytesToString(int access) {
+	/**
+	 * Translates the access bytes for a class, type or other java construct to the string representation followed by a space each.<br>
+	 * For example 9 becomes "private static "
+	 * @param access	The access bytes (0-12)
+	 * @return	The String representation as used in java code.
+	 */
+	public static String accessBytesToString(final int access) {
 		StringBuilder sb = new StringBuilder("");
 		if ((access & ACC_PUBLIC) > 0)
 			sb.append("public ");
@@ -129,7 +156,12 @@ public class BytecodeUtils implements Opcodes {
 		return sb.toString();
 	}
 	
-	public static String opcodeToString(int opcode) {
+	/**
+	 * Translates OP-Codes as used in bytecode instructions to a string representation. This is needed as they are all saved as Constants instead of as an enum.
+	 * @param opcode	The OP-Code to translate
+	 * @return	The translation of the code or "ERROR" if invalid.
+	 */
+	public static String opcodeToString(final int opcode) {
 		switch (opcode) {
 		case INVOKEDYNAMIC:
 			return "INVOKEDYNAMIC";
