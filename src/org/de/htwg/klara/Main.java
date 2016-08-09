@@ -19,6 +19,10 @@ import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.de.htwg.klara.utils.ConsoleUtil;
 
 public class Main {
+	public static final int EXIT_SUCCESS = 0;
+	public static final int EXIT_INVALID_FILTER = 1;
+	public static final int EXIT_INVALID_OPTION = 2;
+	public static final int EXIT_NO_DEBUG_CLASS = 3;
 	private static final String PROG_NAME = "Klara";
 	static final FilterType DEFAULT_FILTER = FilterType.NOTHING;
 
@@ -34,11 +38,11 @@ public class Main {
 				break;
 			if (args[i].equalsIgnoreCase("-h")) {
 				usage();
-				exit(0);
+				exit(EXIT_SUCCESS);
 			} else if (args[i].equals("-f")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.WHITELIST) {
 					System.err.println("Unable to use multiple kinds of filtering in one call.");
-					exit(1);
+					exit(EXIT_INVALID_FILTER);
 				}
 				filterType = FilterType.WHITELIST;
 				Pattern p = Pattern.compile(args[++i]);
@@ -51,7 +55,7 @@ public class Main {
 			} else if (args[i].equals("-F")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.BLACKLIST) {
 					System.err.println("Unable to use multiple kinds of filtering in one call.");
-					exit(1);
+					exit(EXIT_INVALID_FILTER);
 				}
 				filterType = FilterType.BLACKLIST;
 				filter.put(Pattern.compile(args[++i]), null);
@@ -72,24 +76,24 @@ public class Main {
 				listeners.add(VariableChangePrinter.class);
 			} else if (args[i].equals("-i")) {
 				interactiveStart();
-				exit(0);
+				exit(EXIT_SUCCESS);
 			} else {
 				System.err.println("Invalid option " + args[i]);
 				usage();
-				exit(2);
+				exit(EXIT_INVALID_OPTION);
 			}
 		}
 
 		if (i >= args.length) {
 			System.err.println("No class to debug specified!");
 			usage();
-			exit(3);
+			exit(EXIT_NO_DEBUG_CLASS);
 		}
 		String classToLoad = args[i++];
 		String argArray[] = Arrays.copyOfRange(args, i, args.length);
 		
 		Launcher.start(filterType, filter, classToLoad, listeners, generalLinespec, argArray);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	
 	private static void exit(int code) {
