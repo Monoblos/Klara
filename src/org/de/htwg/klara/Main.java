@@ -102,10 +102,10 @@ public class Main {
 		ConsoleUtil.fixwidthPrint(PROG_NAME + " can be used to track bugs in Java programs.");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("Argument specification:");
-		ConsoleUtil.fixwidthPrint("java -jar Klara.jar { -h | -H | { "
-				+ "[ -f regex [ lines ] [ -f regex [ lines ]]... | -F regex [ -F regex]... ] "
-				+ "[ -l lines ] [ -t ] [ -v ] } } "
-				+ "progname [argument [ agrumen]...]");
+		ConsoleUtil.fixwidthPrint("java -jar " + PROG_NAME + ".jar { -h | -H | { "
+				+ "[{ -f regex[ lines][ -f regex[ lines]]...}|{ -F regex[ -F regex]...}] "
+				+ "[ -l lines ] [ -t ] [ -v ] } "
+				+ "progname [argument[ argument]...] }");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("Argument details:");
 		ConsoleUtil.fixwidthPrint("  -h | -H");
@@ -124,12 +124,12 @@ public class Main {
 		ConsoleUtil.fixwidthPrint("  -b");
 		ConsoleUtil.fixwidthPrint("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
 		ConsoleUtil.fixwidthPrint("  -v");
-		ConsoleUtil.fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
+		ConsoleUtil.fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated. Will not track changes of encapsuled variables (Like changing the \"x\" value of a \"Point\")");
 		ConsoleUtil.fixwidthPrint("  -i");
 		ConsoleUtil.fixwidthPrint("    Use interactive mode instead of detailed call. Will ignore other arguments.");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("Example call:");
-		ConsoleUtil.fixwidthPrint("java -jar Klara.jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
+		ConsoleUtil.fixwidthPrint("java -jar " + PROG_NAME + ".jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("");
 
@@ -209,16 +209,14 @@ public class Main {
 				}
 			}
 		}
-		//General linespec
 		if (ConsoleUtil.ask("Do you want to set a general Lineset for all clases without a specific filter?", s)) {
 			generalLinespec = ConsoleUtil.readLineSpec(s);
 		}
-		//
 		if (ConsoleUtil.ask("Do you want to trace the exakt line order?", s)) {
 			listeners.add(LineTracer.class);
 		}
 		if (ConsoleUtil.ask("Do you want to reroute output?", s)) {
-			if (ConsoleUtil.ask("Choose location? If no output goes to stderr.", s)) {
+			if (ConsoleUtil.ask("Choose location? Choosing no means output goes to stderr.", s)) {
 				OutputStreamProvider.stream = System.err;
 			} else {
 				choice = null;
