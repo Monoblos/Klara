@@ -1,5 +1,10 @@
 package org.de.htwg.klara.linespec;
 
+/**
+ * State when a minus was added to symbolize a range. Only numbers are valid to switch to the high-number-state.
+ * @author mrs
+ *
+ */
 public class RangeState implements ParsingState {
 	private ParseEventListener listener;
 	private int lower;

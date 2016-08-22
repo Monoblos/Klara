@@ -2,6 +2,11 @@ package org.de.htwg.klara.transformers.events;
 
 import org.objectweb.asm.tree.FieldInsnNode;
 
+/**
+ * Event identifying that a class variable was assigned.
+ * @author mrs
+ *
+ */
 public class ClassVarChangedEvent implements TransformationEvent {
 	private final FieldInsnNode node;
 

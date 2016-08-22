@@ -1,5 +1,10 @@
 package org.de.htwg.klara.linespec;
 
+/**
+ * State for parsing a single number or the lower number of a range. Semicolon or end of string will add it as a single line. Minus will switch to the range-state.
+ * @author mrs
+ *
+ */
 public class NumberState implements ParsingState {
 	private ParseEventListener listener;
 	private int number;

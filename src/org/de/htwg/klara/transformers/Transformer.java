@@ -36,7 +36,6 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 public class Transformer extends ClassNode {
-	protected ClassVisitor cv = null;
 	protected String className = "";
 	protected LineSpecification lineScope = new LineSpecification();
 	protected LineNumberNode currentLine = null;
@@ -111,6 +110,10 @@ public class Transformer extends ClassNode {
 		
 		for (LocalVariableNode lvn : (List<LocalVariableNode>)mn.localVariables) {
 			futureVariables.add(lvn);
+		}
+		
+		if (mn.maxLocals > 0 && mn.localVariables.isEmpty()) {
+			System.err.println("Warning: Method " + mn.name + " of class " + getClassName() + " has no debug information! Unable to track local variables.");
 		}
 		
 		InsnList insns = mn.instructions;

@@ -1,5 +1,10 @@
 package org.de.htwg.klara.linespec;
 
+/**
+ * The initial state for Parsing a line-specification. Only digits are valid in this state.
+ * @author mrs
+ *
+ */
 public class InitialState implements ParsingState {
 	private ParseEventListener listener;
 	

@@ -1,5 +1,10 @@
 package org.de.htwg.klara.linespec;
 
+/**
+ * State for parsing the upper end of a range. More digits will add to the upper end of the range, semicolon and end of String will finish the parsing of this range.
+ * @author mrs
+ *
+ */
 public class HighNumberState implements ParsingState {
 	private ParseEventListener listener;
 	private int lower;

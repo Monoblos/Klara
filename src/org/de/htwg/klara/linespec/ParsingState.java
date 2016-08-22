@@ -1,5 +1,10 @@
 package org.de.htwg.klara.linespec;
 
+/**
+ * Interface for a class that is able to parse a part of a line specification.
+ * @author mrs
+ *
+ */
 public interface ParsingState {
 	/**
 	 * Parse a single character. Return new state or

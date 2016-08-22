@@ -12,24 +12,26 @@ import org.de.htwg.klara.transformers.events.TransformationEventListener;
 
 public final class Launcher {
 
-	static void start(FilterType filterType,
+	static void start(List<Class<? extends TransformationEventListener>> listeners,
+			FilterType filterType,
 			Map<Pattern, LineSpecification> filter,
-			String classToLoad,
-			List<Class<? extends TransformationEventListener>> listeners,
 			LineSpecification generalLinespec,
-			String[] arguments) throws Exception {
+			String classToLoad,
+			String[] arguments,
+			boolean debug) throws Exception {
 		if (filterType == Main.DEFAULT_FILTER) {
 			filterType = FilterType.WHITELIST;
 			filter.put(Pattern.compile(classToLoad.replace(".", "\\.")), null);
 		}
 		TransformingClassLoader tcl = new TransformingClassLoader(true,
+				listeners,
 				filterType,
 				filter,
-				listeners,
-				generalLinespec);
+				generalLinespec,
+				debug);
 		Class<?> cls = tcl.loadClass(classToLoad);
 		Method main = cls.getMethod("main", (new String[0]).getClass());
-		Object argArray[] = { arguments };
+		Object[] argArray = { arguments };
 		try {
 			main.invoke(null, argArray);
 		} catch (InvocationTargetException e) {

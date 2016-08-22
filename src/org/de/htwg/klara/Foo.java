@@ -5,6 +5,7 @@ import java.util.Random;
 
 public class Foo {
 	private static String clasVar = "abc123";
+	@SuppressWarnings("unused")
 	private final Random r;
 	private Point initValue = new Point();
 	
@@ -24,6 +25,7 @@ public class Foo {
 			counter += 2;
 		}
 		
+		@SuppressWarnings("unused")
 		Integer k = new Integer(17);
 		
 		Thread.sleep(200);

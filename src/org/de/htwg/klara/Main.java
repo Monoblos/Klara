@@ -27,6 +27,7 @@ public class Main {
 		Map<Pattern, LineSpecification> filter = new HashMap<>();
 		FilterType filterType = DEFAULT_FILTER;
 		LineSpecification generalLinespec = new LineSpecification();
+		boolean debug = false;
 		
 		int i;
 		for (i = 0; i < args.length; i++) {
@@ -70,6 +71,8 @@ public class Main {
 				System.out.println(args[i] + " is not yet implemented.");
 			} else if (args[i].equals("-v")) {
 				listeners.add(VariableChangePrinter.class);
+			} else if (args[i].equals("-d")) {
+				debug = true;
 			} else if (args[i].equals("-i")) {
 				interactiveStart();
 				exit(0);
@@ -88,7 +91,7 @@ public class Main {
 		String classToLoad = args[i++];
 		String argArray[] = Arrays.copyOfRange(args, i, args.length);
 		
-		Launcher.start(filterType, filter, classToLoad, listeners, generalLinespec, argArray);
+		Launcher.start(listeners, filterType, filter, generalLinespec, classToLoad, argArray, debug);
 		exit(0);
 	}
 	
@@ -236,6 +239,6 @@ public class Main {
 			listeners.add(VariableChangePrinter.class);
 		}
 
-		Launcher.start(filterType, filter, classToLoad, listeners, generalLinespec, arguments.toArray(new String[0]));
+		Launcher.start(listeners, filterType, filter, generalLinespec, classToLoad, arguments.toArray(new String[0]), false);
 	}
 }

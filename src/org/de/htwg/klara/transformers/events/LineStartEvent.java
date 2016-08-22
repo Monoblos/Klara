@@ -2,6 +2,11 @@ package org.de.htwg.klara.transformers.events;
 
 import org.objectweb.asm.tree.LineNumberNode;
 
+/**
+ * Event identifying that a new line started
+ * @author mrs
+ *
+ */
 public final class LineStartEvent implements TransformationEvent {
 	private final LineNumberNode node;
 

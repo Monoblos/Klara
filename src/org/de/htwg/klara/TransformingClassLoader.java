@@ -36,12 +36,14 @@ public class TransformingClassLoader extends ClassLoader {
 	private final Hashtable<String, Class<?>> cachedClasses = new Hashtable<>();
 	private final List<Class<? extends TransformationEventListener>> transformers;
 	private final LineSpecification defaultLineSpec;
+	private final boolean debug;
 	
 	public TransformingClassLoader(boolean cache, 
+			List<Class<? extends TransformationEventListener>> transformers, 
 			FilterType filterType, 
 			Map<Pattern, LineSpecification> filter, 
-			List<Class<? extends TransformationEventListener>> transformers, 
-			LineSpecification defaultLineSpec) {
+			LineSpecification defaultLineSpec,
+			boolean debug) {
 		//Default init of a custom class loader
 		super(TransformingClassLoader.class.getClassLoader());
 		
@@ -58,6 +60,7 @@ public class TransformingClassLoader extends ClassLoader {
 		this.filter = filter;
 		this.transformers = transformers;
 		this.defaultLineSpec = defaultLineSpec;
+		this.debug = debug;
 	}
 
 	/**
@@ -157,9 +160,12 @@ public class TransformingClassLoader extends ClassLoader {
 		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		Transformer trans;
 		try {
-			ClassVisitor printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
-			trans = new Transformer(Opcodes.ASM4, printer);
-			//trans = new Transformer(Opcodes.ASM4, cw);
+			if (debug) {
+				ClassVisitor printer = BytcodeInstructionPrinter.getClassVisitorForThis().getConstructor(Integer.TYPE, ClassVisitor.class).newInstance(Opcodes.ASM4, cw);
+				trans = new Transformer(Opcodes.ASM4, printer);
+			} else {
+				trans = new Transformer(Opcodes.ASM4, cw);
+			}
 			for (Class<? extends TransformationEventListener> tel : transformers) {
 				tel.getConstructor(Transformer.class).newInstance(trans);
 			}
