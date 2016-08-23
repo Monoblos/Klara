@@ -128,8 +128,8 @@ public class Main {
 		ConsoleUtil.fixwidthPrint("    Trace the exact line order by printing every line run.");
 		ConsoleUtil.fixwidthPrint("  -o e | <file>");
 		ConsoleUtil.fixwidthPrint("    Write output to stderr or a file.");
-		ConsoleUtil.fixwidthPrint("  -b");
-		ConsoleUtil.fixwidthPrint("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
+//		ConsoleUtil.fixwidthPrint("  -b");
+//		ConsoleUtil.fixwidthPrint("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
 		ConsoleUtil.fixwidthPrint("  -v");
 		ConsoleUtil.fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated. Will not track changes of encapsuled variables (Like changing the \"x\" value of a \"Point\")");
 		ConsoleUtil.fixwidthPrint("  -i");
@@ -234,9 +234,9 @@ public class Main {
 				OutputStreamProvider.setToFile(choice);
 			}
 		}
-		if (ConsoleUtil.ask("Do you want to get general branching information?", s)) {
-			System.out.println("Not yet implemented.");
-		}
+//		if (ConsoleUtil.ask("Do you want to get general branching information?", s)) {
+//			System.out.println("Not yet implemented.");
+//		}
 		if (ConsoleUtil.ask("Do you want to get information about every variable assignment?", s)) {
 			listeners.add(VariableChangePrinter.class);
 		}
