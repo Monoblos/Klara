@@ -30,7 +30,7 @@
 	<target name="generate_javadoc">
 		<javadoc packagenames="org.de.htwg.klara.*"
 		           sourcepath="src"
-		           destdir="docs/api"
+		           destdir="docs"
 	               classpath="./lib/asm-all-5.1.jar"
 		           author="true"
 		           version="true"

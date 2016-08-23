@@ -7,24 +7,27 @@ What is this?
 -------------
 
 Klara is a command-line tool for java, which will add informational output to your program at runtime.
-This information includes for example variable values before conditions are checked, stating which branch was executed at if/else-if/else statements or counting loop iterations done.
+This method of debugging is called tracing. The result is similar to adding a huge amount of prints.  
+There are currently two modifying modules available:
 
-User stories
---------------------
-
-As a user of Klara I want to 
-* be able to run my program with additional, extended output on what the actual assigned values are for each variable.
-* be able to track the exact path the program used by showing the exact order the program lines where executed.
-* be able to track the exact path the program used by getting branch information and loop iterations done.
-* easily set what features I want to have displayed as parameters in the initial call.
-* interactively choose the options before the execution of the main program.
-* choose a set of lines to be inspected instead of the entire program.
+* The variable change printer will print out the value of a variable whenever it is assigned.
+* The line tracer will ensure a least one print per line, to have a trace of the exact line order executed.
 
 Usage
 -----
 
-Execution using klara usually looks like this:
+Execution using Klara usually looks like this:
 
     java -jar Klara.jar -v -t com.example.Test arg1 arg2
 
 This would call the main-method of the class "com.example.Test" parsing the arguments "arg1" and "arg2".
+
+How to build
+------------
+
+Using the default ant-task in the "ant.xml" all code will be compiled and packed as a single jar-file. Requires ant 1.7.
+
+How to get the documentation
+----------------------------
+
+Using the ant task "generate_javadoc" the entire documentation will be generated in a folder "docs".
