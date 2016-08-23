@@ -1,7 +1,7 @@
 /**
  * Main package of the application "Klara". <br>
  * Klara is a command line tool to add tracing output to other programs.<br>
- * For more information see the readme in the git repository here: {@link http://goo.gl/QiQEqI}
+ * For more information see the readme in the git repository here: http://goo.gl/QiQEqI
  * @author mrs
  *
  */

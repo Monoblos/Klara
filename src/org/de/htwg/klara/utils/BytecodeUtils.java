@@ -41,7 +41,7 @@ public final class BytecodeUtils implements Opcodes {
 	 * <br>
 	 * This is identical to calling {@link BytecodeUtils#typeToJava(String, boolean) typeToJava(s, true)}
 	 * @param s	The type to translate
-	 * @return
+	 * @return	The readable java-type.
 	 */
 	public static String typeToJava(final String s) {
 		return typeToJava(s, true);
@@ -50,6 +50,7 @@ public final class BytecodeUtils implements Opcodes {
 	/**
 	 * Convert given type descriptor to "normal" look. Does not validate if the given descriptor is valid.
 	 * @param s	The type descriptor.
+	 * @param fullQualifiedClasses	{@code true} to use fully qualified class names. {@code false} will only return Class name without packages.
 	 * @return	The readable java-type.
 	 */
 	public static String typeToJava(String s, final boolean fullQualifiedClasses) {

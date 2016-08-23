@@ -26,4 +26,19 @@
             <zipfileset dir="." includes="LICENCE.txt"/>
         </jar>
     </target>
+	
+	<target name="generate_javadoc">
+		<javadoc packagenames="org.de.htwg.klara.*"
+		           sourcepath="src"
+		           destdir="docs/api"
+	               classpath="./lib/asm-all-5.1.jar"
+		           author="true"
+		           version="true"
+		           use="true"
+		           windowtitle="Klara API">
+		    <doctitle><![CDATA[<h1>Klara</h1>]]></doctitle>
+		    <tag name="todo" scope="all" description="To do:"/>
+		    <link href="http://docs.oracle.com/javase/7/docs/api/"/>
+		  </javadoc>
+	</target>
 </project>

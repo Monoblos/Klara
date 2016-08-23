@@ -43,7 +43,7 @@ public final class BytcodeInstructionPrinter extends MethodVisitor {
 	
 	/**
 	 * Get a {@link ClassVisitor} that will return this class for every method.
-	 * @return
+	 * @return	A class returning this class for any method.
 	 */
 	public static Class<? extends ClassVisitor> getClassVisitorForThis() {
 		return Dummy.class;
