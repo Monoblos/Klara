@@ -46,20 +46,20 @@ public final class ConsoleUtil {
 	 * @param lineLength	The maximum length of a line.
 	 */
 	public static void fixwidthPrint(String text, final int lineLength) {
-		if (text.length() < lineLength) {
+		if (text.length() <= lineLength) {
 			System.out.println(text);
 			return;
 		}
 		String outBlock = text.substring(0, lineLength);
 		text = text.substring(lineLength);
-		System.out.println(outBlock);
+		System.out.print(outBlock);
 		while(text.length() > lineLength - FRONT_SPACES) {
 			outBlock = text.substring(0, lineLength - FRONT_SPACES);
 			text = text.substring(lineLength - FRONT_SPACES);
 			for (int i = 0; i < FRONT_SPACES; i++) {
 				outBlock = " " + outBlock;
 			}
-			System.out.println(outBlock);
+			System.out.print(outBlock);
 		}
 		for (int i = 0; i < FRONT_SPACES; i++) {
 			System.out.print(" ");
