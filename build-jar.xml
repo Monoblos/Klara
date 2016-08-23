@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="create_run_jar" name="Create Runnable Jar for Project Klara with Jar-in-Jar Loader">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
-    <!--modified to inclued licence                                -->
+    <!--modified to inclued licence and to only use realtive paths -->
     <!--ANT 1.7 is required                                        -->
     <target name="create_run_jar">
         <jar destfile="./Klara.jar">
@@ -11,9 +11,9 @@
                 <attribute name="Class-Path" value="."/>
                 <attribute name="Rsrc-Class-Path" value="./ asm-all-5.1.jar"/>
             </manifest>
-            <zipfileset src="jar-in-jar-loader.zip"/>
+            <zipfileset src="./lib/jar-in-jar-loader.zip"/>
             <fileset dir="./bin"/>
-            <zipfileset dir=".\lib" includes="asm-all-5.1.jar"/>
+            <zipfileset dir="./lib" includes="asm-all-5.1.jar"/>
             <zipfileset dir="." includes="LICENCE.txt"/>
         </jar>
     </target>
