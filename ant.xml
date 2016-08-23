@@ -37,8 +37,6 @@
 		           use="true"
 		           windowtitle="Klara API">
 		    <doctitle><![CDATA[<h1>Klara</h1>]]></doctitle>
-		    <tag name="todo" scope="all" description="To do:"/>
-		    <link href="http://docs.oracle.com/javase/7/docs/api/"/>
 		  </javadoc>
 	</target>
 </project>
