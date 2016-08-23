@@ -19,6 +19,10 @@ import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.de.htwg.klara.utils.ConsoleUtil;
 
 public class Main {
+	public static final int EXIT_SUCCESS = 0;
+	public static final int EXIT_INVALID_FILTER = 1;
+	public static final int EXIT_INVALID_OPTION = 2;
+	public static final int EXIT_NO_DEBUG_CLASS = 3;
 	private static final String PROG_NAME = "Klara";
 	static final FilterType DEFAULT_FILTER = FilterType.NOTHING;
 
@@ -35,11 +39,11 @@ public class Main {
 				break;
 			if (args[i].equalsIgnoreCase("-h")) {
 				usage();
-				exit(0);
+				exit(EXIT_SUCCESS);
 			} else if (args[i].equals("-f")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.WHITELIST) {
 					System.err.println("Unable to use multiple kinds of filtering in one call.");
-					exit(1);
+					exit(EXIT_INVALID_FILTER);
 				}
 				filterType = FilterType.WHITELIST;
 				Pattern p = Pattern.compile(args[++i]);
@@ -52,7 +56,7 @@ public class Main {
 			} else if (args[i].equals("-F")) {
 				if (filterType != DEFAULT_FILTER && filterType != FilterType.BLACKLIST) {
 					System.err.println("Unable to use multiple kinds of filtering in one call.");
-					exit(1);
+					exit(EXIT_INVALID_FILTER);
 				}
 				filterType = FilterType.BLACKLIST;
 				filter.put(Pattern.compile(args[++i]), null);
@@ -75,24 +79,24 @@ public class Main {
 				debug = true;
 			} else if (args[i].equals("-i")) {
 				interactiveStart();
-				exit(0);
+				exit(EXIT_SUCCESS);
 			} else {
 				System.err.println("Invalid option " + args[i]);
 				usage();
-				exit(2);
+				exit(EXIT_INVALID_OPTION);
 			}
 		}
 
 		if (i >= args.length) {
 			System.err.println("No class to debug specified!");
 			usage();
-			exit(3);
+			exit(EXIT_NO_DEBUG_CLASS);
 		}
 		String classToLoad = args[i++];
 		String argArray[] = Arrays.copyOfRange(args, i, args.length);
 		
 		Launcher.start(listeners, filterType, filter, generalLinespec, classToLoad, argArray, debug);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 	
 	private static void exit(int code) {
@@ -105,10 +109,10 @@ public class Main {
 		ConsoleUtil.fixwidthPrint(PROG_NAME + " can be used to track bugs in Java programs.");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("Argument specification:");
-		ConsoleUtil.fixwidthPrint("java -jar Klara.jar { -h | -H | { "
-				+ "[ -f regex [ lines ] [ -f regex [ lines ]]... | -F regex [ -F regex]... ] "
-				+ "[ -l lines ] [ -t ] [ -v ] } } "
-				+ "progname [argument [ agrumen]...]");
+		ConsoleUtil.fixwidthPrint("java -jar " + PROG_NAME + ".jar { -h | -H | { "
+				+ "[{ -f regex[ lines][ -f regex[ lines]]...}|{ -F regex[ -F regex]...}] "
+				+ "[ -l lines ] [ -t ] [ -v ] } "
+				+ "progname [argument[ argument]...] }");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("Argument details:");
 		ConsoleUtil.fixwidthPrint("  -h | -H");
@@ -127,12 +131,12 @@ public class Main {
 		ConsoleUtil.fixwidthPrint("  -b");
 		ConsoleUtil.fixwidthPrint("    Trace the branching used. Will evaluate which if case was executed, at what switch-case block it jumped and how many times loops where executed.");
 		ConsoleUtil.fixwidthPrint("  -v");
-		ConsoleUtil.fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated.");
+		ConsoleUtil.fixwidthPrint("    Trace any variable assignment. Variables will be printed when declared and every time they are updated. Will not track changes of encapsuled variables (Like changing the \"x\" value of a \"Point\")");
 		ConsoleUtil.fixwidthPrint("  -i");
 		ConsoleUtil.fixwidthPrint("    Use interactive mode instead of detailed call. Will ignore other arguments.");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("Example call:");
-		ConsoleUtil.fixwidthPrint("java -jar Klara.jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
+		ConsoleUtil.fixwidthPrint("java -jar " + PROG_NAME + ".jar -t -v -f my.cool.class.* 20-50 my.cool.pkg.MyClass arg1 arg2");
 		ConsoleUtil.fixwidthPrint("");
 		ConsoleUtil.fixwidthPrint("");
 
@@ -212,16 +216,14 @@ public class Main {
 				}
 			}
 		}
-		//General linespec
 		if (ConsoleUtil.ask("Do you want to set a general Lineset for all clases without a specific filter?", s)) {
 			generalLinespec = ConsoleUtil.readLineSpec(s);
 		}
-		//
 		if (ConsoleUtil.ask("Do you want to trace the exakt line order?", s)) {
 			listeners.add(LineTracer.class);
 		}
 		if (ConsoleUtil.ask("Do you want to reroute output?", s)) {
-			if (ConsoleUtil.ask("Choose location? If no output goes to stderr.", s)) {
+			if (ConsoleUtil.ask("Choose location? Choosing no means output goes to stderr.", s)) {
 				OutputStreamProvider.stream = System.err;
 			} else {
 				choice = null;
