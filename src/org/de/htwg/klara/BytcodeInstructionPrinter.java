@@ -6,8 +6,14 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-public class BytcodeInstructionPrinter extends MethodVisitor {
-	private static class Dummy extends ClassVisitor {
+/**
+ * Class to print the bytecode of a method.
+ * To use in a Event-Chain {@link #getClassVisitorForThis()}
+ * @author mrs
+ *
+ */
+public final class BytcodeInstructionPrinter extends MethodVisitor {
+	private static final class Dummy extends ClassVisitor {
 		public Dummy(int api, ClassVisitor cv) {
 			super(api, cv);
 		}
@@ -35,6 +41,10 @@ public class BytcodeInstructionPrinter extends MethodVisitor {
 		}
 	}
 	
+	/**
+	 * Get a {@link ClassVisitor} that will return this class for every method.
+	 * @return
+	 */
 	public static Class<? extends ClassVisitor> getClassVisitorForThis() {
 		return Dummy.class;
 	}

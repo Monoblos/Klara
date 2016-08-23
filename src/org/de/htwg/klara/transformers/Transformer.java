@@ -35,36 +35,61 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+/**
+ * A special node of a ASM-Event-Chain, that will generate a self defined set of events for methods to a list of listeners.
+ * This allows a set of manipulations at once as well as notifications to other listeners about the changes made.
+ * Also it allows several modules to manipulate methods with minimal code duplication.
+ * @author mrs
+ */
 public class Transformer extends ClassNode {
-	protected String className = "";
-	protected LineSpecification lineScope = new LineSpecification();
-	protected LineNumberNode currentLine = null;
-	protected MethodNode currentMethod = null;
-	Map<Integer, LocalVariable> currentScope = new HashMap<>();
-	List<LocalVariableNode> futureVariables = new LinkedList<>();
+	private String className = "";
+	private LineSpecification lineScope = new LineSpecification();
+	private LineNumberNode currentLine = null;
+	private MethodNode currentMethod = null;
+	private final Map<Integer, LocalVariable> currentScope = new HashMap<>();
+	private final List<LocalVariableNode> futureVariables = new LinkedList<>();
 	private boolean inLineScope = false;
 	
-	protected List<TransformationEventListener> listeners = new LinkedList<>();
+	private List<TransformationEventListener> listeners = new LinkedList<>();
 
 	public Transformer(int api, ClassVisitor cv) {
 		super(api);
 		this.cv = cv;
 	}
 	
+	/**
+	 * Add a listener. Listener can only be added once.
+	 * @param listener	The listener to add.
+	 */
 	public void addListener(TransformationEventListener listener) {
 		removeListener(listener);
 		listeners.add(listener);
 	}
 	
+	/**
+	 * Remove a listener.
+	 * @param listener	The listener to remove
+	 * @return	{@code true} if the action was successful, {@code false} otherwise
+	 */
 	public boolean removeListener(TransformationEventListener listener) {
 		return listeners.remove(listener);
 	}
 	
+	/**
+	 * Set a line scope for which events will be generated. Any instructions in a line outside the scope will not generate events.
+	 * Can be updated any time but will only be refreshed as soon as the next line is reached.
+	 * @param scope	The line scope to use.
+	 */
 	public void setLineScope(LineSpecification scope) {
 		this.lineScope = scope;
 	}
 	
-	protected void sendEvent(TransformationEvent e) {
+	/**
+	 * Send a event triggered by the current line to all {@link #listeners}.
+	 * If it is not {@link #inLineScope} no event will be send.
+	 * @param e	The event to send
+	 */
+	private void sendEvent(TransformationEvent e) {
 		if (!inLineScope)
 			return;
 		for (TransformationEventListener tel : listeners) {
@@ -72,6 +97,10 @@ public class Transformer extends ClassNode {
 		}
 	}
 	
+	/**
+	 * Set a new line, will also update the variable {@link #inLineScope}
+	 * @param line
+	 */
 	private void setLine(LineNumberNode line) {
 		currentLine = line;
 		inLineScope = lineScope.contains(line.line);
@@ -94,15 +123,23 @@ public class Transformer extends ClassNode {
 		}
 	}
 	
+	/**
+	 * Performs the {@link #methodTransform(MethodNode) methodTransform} for all methods of the current class.
+	 */
 	@SuppressWarnings("unchecked")
-	protected void transform() {
+	synchronized private void transform() {
 		for (MethodNode mn : (List<MethodNode>) methods) {
 			methodTransform(mn);
 		}
 	}
 	
+	/**
+	 * Scans through the instructions of the method, creating events for relevant structures.
+	 * Listeners can then react to those events and modify the method.
+	 * @param mn	The method to transform
+	 */
 	@SuppressWarnings("unchecked")
-	synchronized protected void methodTransform(MethodNode mn) {
+	synchronized private void methodTransform(MethodNode mn) {
 		boolean waitingForSuperCall = "<init>".equals(mn.name);
 		currentMethod = mn;
 		currentScope.clear();
@@ -167,9 +204,9 @@ public class Transformer extends ClassNode {
 	}
 	
 	/**
-	 * Inserts a print with the current location and any additional text in the {@code InsnList what} after the Node identified by where.
+	 * Inserts a print with the current location and any additional text in the {@code InsnList what} after the Node identified by {@code where}.
 	 * @param where	The Node after which the print should be added
-	 * @param what	A sequence of append calls to the StringBuilder on the stack
+	 * @param what	A sequence of append calls to the StringBuilder on the stack. Can be an empty list.
 	 */
 	public void printLine(AbstractInsnNode where, InsnList what) {
 		InsnList il = new InsnList();
@@ -185,10 +222,20 @@ public class Transformer extends ClassNode {
 		sendEvent(new PrintAddedEvent(where));
 	}
 	
+	/**
+	 * Get the name of the class that is getting transformed, including all packages.
+	 * Format is equal to the format in a import statement.
+	 * @return	The full qualified class names of the current class, splitted using dots.
+	 */
 	public String getClassName() {
 		return className.replace('/', '.');
 	}
 	
+	/**
+	 * Get a local Variable valid in the context of the current line by it's index.
+	 * @param index	The index of the local variable
+	 * @return	The local variable
+	 */
 	public LocalVariable getVar(int index) {
 		return currentScope.get(index);
 	}

@@ -4,6 +4,11 @@ import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
 import org.objectweb.asm.tree.InsnList;
 
+/**
+ * The Line trace will ensure that there is at least one print added per line, to have a complete log of the line order executed.
+ * @author mrs
+ *
+ */
 public class LineTracer implements TransformationEventListener {
 	private final Transformer trans;
 	private boolean linePrinted = true;

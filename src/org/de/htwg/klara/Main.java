@@ -26,7 +26,7 @@ public class Main {
 	private static final String PROG_NAME = "Klara";
 	static final FilterType DEFAULT_FILTER = FilterType.NOTHING;
 
-	public static void main(final String[] args) throws Exception {
+	public static void main(final String[] args) throws Throwable {
 		List<Class<? extends TransformationEventListener>> listeners = new LinkedList<>();
 		Map<Pattern, LineSpecification> filter = new HashMap<>();
 		FilterType filterType = DEFAULT_FILTER;
@@ -99,11 +99,18 @@ public class Main {
 		exit(EXIT_SUCCESS);
 	}
 	
+	/**
+	 * Exit with the given code, doing any cleanup first.
+	 * @param code	Exit-Code to use
+	 */
 	private static void exit(int code) {
 		OutputStreamProvider.close();
 		System.exit(code);
 	}
 
+	/**
+	 * Print usage of the commandline interface
+	 */
 	public static void usage() {
 		ConsoleUtil.fixwidthPrint("This is the commandline interface of " + PROG_NAME + ".");
 		ConsoleUtil.fixwidthPrint(PROG_NAME + " can be used to track bugs in Java programs.");
@@ -148,7 +155,11 @@ public class Main {
 		}
 	}
 	
-	public static void interactiveStart() throws Exception {
+	/**
+	 * Print a prompt for each possible option, asking for the desired setting. 
+	 * @throws Exception	Not handling any exceptions
+	 */
+	public static void interactiveStart() throws Throwable {
 		Scanner s = new Scanner(System.in);
 		String choice = "";
 

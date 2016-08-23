@@ -5,6 +5,12 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.VarInsnNode;
 
+/**
+ * Class variable, static or dynamic.
+ * Dynamic variables can only be loaded from non-static methods of the class.
+ * @author mrs
+ *
+ */
 public class ClassVariable implements AbstractVariable {
 	private final String owner;
 	private final String name;

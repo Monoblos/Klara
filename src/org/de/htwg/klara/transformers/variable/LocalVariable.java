@@ -4,6 +4,11 @@ import org.de.htwg.klara.utils.TransformUtils;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.LocalVariableNode;
 
+/**
+ * Local variable of a method. Can be a parameter or just a declared variable within the method.
+ * @author mrs
+ *
+ */
 public class LocalVariable implements AbstractVariable {
 	private final LocalVariableNode lvn;
 	private VarType type = null;
@@ -50,6 +55,10 @@ public class LocalVariable implements AbstractVariable {
 		return lvn.desc;
 	}
 
+	/**
+	 * Get the original node this was created from.
+	 * @return	The encapsulated node.
+	 */
 	public LocalVariableNode getNode() {
 		return lvn;
 	}

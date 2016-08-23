@@ -1,5 +1,7 @@
 package org.de.htwg.klara.transformers;
 
+import java.awt.Point;
+
 import org.de.htwg.klara.transformers.events.ScopeReachedEvent;
 import org.de.htwg.klara.transformers.events.TransformationEvent;
 import org.de.htwg.klara.transformers.events.TransformationEventListener;
@@ -15,6 +17,12 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+/**
+ * The variable change printer will print the new value of a variable whenever it is changed or a new is created.
+ * Does not track changes of values within Objects, like the x value of a {@link Point}
+ * @author mrs
+ *
+ */
 public final class VariableChangePrinter implements TransformationEventListener {
 	private final Transformer trans;
 	
@@ -47,6 +55,11 @@ public final class VariableChangePrinter implements TransformationEventListener 
 		}
 	}
 	
+	/**
+	 * Builds the instruction list to generate a text to display a variable value. Expects a {@link StringBuilder} on the stack.
+	 * @param var	The variable to generate the text for.
+	 * @return	The instructions to append it to a {@link StringBuilder}
+	 */
 	private InsnList generateVariablePrint(AbstractVariable var) {
 		VarType type = var.getType();
 

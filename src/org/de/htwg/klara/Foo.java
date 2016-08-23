@@ -3,6 +3,11 @@ package org.de.htwg.klara;
 import java.awt.Point;
 import java.util.Random;
 
+/**
+ * Test class for loading and transforming
+ * @author mrs
+ *
+ */
 public class Foo {
 	private static String clasVar = "abc123";
 	@SuppressWarnings("unused")

@@ -22,6 +22,11 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
 
+/**
+ * Class loader that can modify loaded classes using the {@link Transformer}.
+ * @author mrs
+ *
+ */
 public class TransformingClassLoader extends ClassLoader {
 	public static enum FilterType {
 		BLACKLIST,
@@ -38,6 +43,15 @@ public class TransformingClassLoader extends ClassLoader {
 	private final LineSpecification defaultLineSpec;
 	private final boolean debug;
 	
+	/**
+	 * Create a new transforming class loader.
+	 * @param cache			If loaded classes should be cached
+	 * @param transformers	List of transformers to be used by the {@link Transformer}
+	 * @param filterType	How filtering should be done
+	 * @param filter		List of filters to use with the {@link LineSpecification} to use if it matches
+	 * @param defaultLineSpec	Line specification if the filter did not specify any
+	 * @param debug			Set to true to print bytecode of loaded classes
+	 */
 	public TransformingClassLoader(boolean cache, 
 			List<Class<? extends TransformationEventListener>> transformers, 
 			FilterType filterType, 
@@ -105,6 +119,12 @@ public class TransformingClassLoader extends ClassLoader {
 		return false;
 	}
 	
+	/**
+	 * Method for advanced searching for class files.
+	 * Can be used to implement some actual logic of searching for classes.
+	 * @param relativeFilePath	relative path of the class
+	 * @return	A full qualified path to the class file. Invalid if file was not found.
+	 */
 	private String findClassFile(final Path relativeFilePath) {
 		String searchedSubpath[] = { "." };
 		for (String subpath : searchedSubpath) {
@@ -183,7 +203,9 @@ public class TransformingClassLoader extends ClassLoader {
 		byte[] modifiedBytes = cw.toByteArray();
 		
 		Class<?> c = defineClass(name, modifiedBytes, 0, modifiedBytes.length);
-		cachedClasses.put(name, c);
+		if (cache) {
+			cachedClasses.put(name, c);
+		}
 		return c;
 	}
 	
