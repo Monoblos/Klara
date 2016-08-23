@@ -31,3 +31,8 @@ How to get the documentation
 ----------------------------
 
 Using the ant task "generate_javadoc" the entire documentation will be generated in a folder "docs".
+
+Additional information
+----------------------
+
+This program was created as a bachelor thesis. The thesis can be found as a separate git-project.
