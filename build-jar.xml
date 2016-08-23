@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project default="create_run_jar" name="Create Runnable Jar for Project Klara with Jar-in-Jar Loader">
-    <!--this file was created by Eclipse Runnable JAR Export Wizard-->
-    <!--modified to inclued licence and to only use realtive paths -->
     <!--ANT 1.7 is required                                        -->
-    <target name="create_run_jar">
+
+	<target name="compile">
+		<javac srcdir="./src"
+		         destdir="./bin"
+		         classpath="./lib/asm-all-5.1.jar"
+		         debug="on"
+				 compiler="modern"
+				 includeantruntime="false"
+		  />
+	</target>
+	
+    <target name="create_run_jar" depends="compile">
         <jar destfile="./Klara.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
