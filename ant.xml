@@ -35,7 +35,8 @@
 		           author="true"
 		           version="true"
 		           use="true"
-		           windowtitle="Klara API">
+		           windowtitle="Klara doc"
+				   access="private">
 		    <doctitle><![CDATA[<h1>Klara</h1>]]></doctitle>
 		  </javadoc>
 	</target>

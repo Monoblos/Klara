@@ -99,7 +99,7 @@ public class Transformer extends ClassNode {
 	
 	/**
 	 * Set a new line, will also update the variable {@link #inLineScope}
-	 * @param line
+	 * @param line	The new line
 	 */
 	private void setLine(LineNumberNode line) {
 		currentLine = line;

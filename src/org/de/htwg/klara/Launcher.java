@@ -23,9 +23,9 @@ public final class Launcher {
 	 * @param classToLoad	The initial class to load and start. Needs a typical "main" method
 	 * @param arguments		Arguments to pass to the stated class
 	 * @param debug			The debug argument to pass to the class loader
-	 * @throws Throwable
+	 * @throws Throwable	Any error from the executed class. Stack trace is reduced to not show any loading class.
 	 */
-	static void start(List<Class<? extends TransformationEventListener>> listeners,
+	public static void start(List<Class<? extends TransformationEventListener>> listeners,
 			FilterType filterType,
 			Map<Pattern, LineSpecification> filter,
 			LineSpecification generalLinespec,
