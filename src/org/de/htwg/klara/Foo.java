@@ -22,12 +22,11 @@ public class Foo {
 	}
 	
 	public static void main(String args[]) throws InterruptedException {
+		int[] counter = {0, 0, 0};
 		System.out.println("Foo got run. Class loader: " + Foo.class.getClassLoader());
 
-		long counter = 0;
-		
-		for(int i = 0; i < 10; i++) {
-			counter += 2;
+		for(int i = 0; i < counter.length; i++) {
+			counter[i] += 2;
 		}
 		
 		@SuppressWarnings("unused")
@@ -35,7 +34,7 @@ public class Foo {
 		
 		Thread.sleep(200);
 		
-		if (counter > 2)
+		if (counter.length > 2)
 			clasVar = "blub";
 		
 		boolean result = clasVar.equals("a");

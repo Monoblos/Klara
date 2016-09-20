@@ -11,12 +11,11 @@ import org.objectweb.asm.tree.VarInsnNode;
  * @author mrs
  *
  */
-public class ClassVariable implements AbstractVariable {
+public class ClassVariable extends AbstractVariable {
 	private final String owner;
 	private final String name;
 	private final String description;
 	private final boolean isStatic;
-	private VarType type = null;
 	
 	public ClassVariable(final String owner, final String name, final String description, final boolean isStatic) {
 		this.owner = owner;
@@ -40,27 +39,6 @@ public class ClassVariable implements AbstractVariable {
 	@Override
 	public String getName() {
 		return name;
-	}
-
-	@Override
-	public boolean isArray() {
-		return description.startsWith("[");
-	}
-
-	@Override
-	public VarType getType() {
-		if (type == null) {
-			if (description.startsWith("[")) {
-				type = VarType.OTHER;
-			} else if (description.equals("Ljava/lang/String;")) {
-				type = VarType.STRING;
-			} else if (description.equals("C")) {
-				type = VarType.CHAR;
-			} else {
-				type = VarType.OBJECT;
-			}
-		}
-		return type;
 	}
 
 	@Override

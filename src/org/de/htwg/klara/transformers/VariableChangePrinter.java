@@ -64,9 +64,8 @@ public final class VariableChangePrinter implements TransformationEventListener 
 		VarType type = var.getType();
 
 		String builderMethod = "Ljava/lang/Object;";
-		if (var.getDescription().length() == 1) {
+		if (var.isPrimitive()) {
 			builderMethod = var.getDescription();
-			type = VarType.OTHER;
 		} else if (var.isArray() || type == VarType.STRING)
 			builderMethod = "Ljava/lang/String;";
 
@@ -82,7 +81,10 @@ public final class VariableChangePrinter implements TransformationEventListener 
 		}
 		il.add(var.load());
 		if (var.isArray()) {
-			il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/util/Arrays", "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;", false));
+			if (var.getArrayType() == VarType.OBJECT || var.getArrayType() == VarType.STRING)
+				il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/util/Arrays", "deepToString", "([Ljava/lang/Object;)Ljava/lang/String;", false));
+			else
+				il.add(new MethodInsnNode(Opcodes.INVOKESTATIC, "java/util/Arrays", "toString", "(" + var.getDescription() + ")Ljava/lang/String;", false));
 		}
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(" + builderMethod + ")Ljava/lang/StringBuilder;", false));
 		if (type == VarType.STRING || type == VarType.CHAR) {

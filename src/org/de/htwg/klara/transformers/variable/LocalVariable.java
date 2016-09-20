@@ -9,9 +9,8 @@ import org.objectweb.asm.tree.LocalVariableNode;
  * @author mrs
  *
  */
-public class LocalVariable implements AbstractVariable {
+public class LocalVariable extends AbstractVariable {
 	private final LocalVariableNode lvn;
-	private VarType type = null;
 	
 	public LocalVariable(final LocalVariableNode lvn) {
 		this.lvn = lvn;
@@ -27,27 +26,6 @@ public class LocalVariable implements AbstractVariable {
 	@Override
 	public String getName() {
 		return lvn.name;
-	}
-
-	@Override
-	public boolean isArray() {
-		return lvn.desc.startsWith("[");
-	}
-
-	@Override
-	public VarType getType() {
-		if (type == null) {
-			if (lvn.desc.startsWith("[")) {
-				type = VarType.OTHER;
-			} else if (lvn.desc.equals("Ljava/lang/String;")) {
-				type = VarType.STRING;
-			} else if (lvn.desc.equals("C")) {
-				type = VarType.CHAR;
-			} else {
-				type = VarType.OBJECT;
-			}
-		}
-		return type;
 	}
 
 	@Override

@@ -8,7 +8,7 @@ import org.objectweb.asm.tree.InsnList;
  * Known Implementations are {@link ClassVariable} and {@link LocalVariable}
  * @author mrs
  */
-public interface AbstractVariable {
+public abstract class AbstractVariable {
 	/**
 	 * The 4 variable types that have special handling:
 	 * <ul>
@@ -26,30 +26,78 @@ public interface AbstractVariable {
 		CHAR,
 		OTHER
 	}
+
+	private VarType type = null;
+	private VarType arrayType = null;
 	
 	/**
 	 * Returns the a list of instructions needed to load this Variable
 	 * @return	The instructions needed.
 	 */
-	public InsnList load();
+	public abstract InsnList load();
 	/**
 	 * Get the display name of this variable
 	 * @return	The name of this variable
 	 */
-	public String getName();
-	/**
-	 * Returns whether or not this is a array.
-	 * @return	True if this is at least a 1-Dimensional array, false otherwise
-	 */
-	public boolean isArray();
-	/**
-	 * Returns the type of this variable. Types are described in {@link VarType}.
-	 * @return	The type of this variable.
-	 */
-	public VarType getType();
+	public abstract String getName();
 	/**
 	 * Get the raw description of this variable as used in Bytecode.
 	 * @return	The description of this variable
 	 */
-	public String getDescription();
+	public abstract String getDescription();
+
+	/**
+	 * Returns whether or not this is a array.
+	 * @return	True if this is at least a 1-Dimensional array, false otherwise
+	 */
+	public boolean isArray() {
+		return getDescription().startsWith("[");
+	}
+
+	/**
+	 * Returns whether or not this is a primitive type.
+	 * @return	True if this is a primitive type, false otherwise
+	 */
+	public boolean isPrimitive() {
+		return getDescription().length() == 1;
+	}
+
+	/**
+	 * Returns the type of this variable. Types are described in {@link VarType}.
+	 * @return	The type of this variable.
+	 */
+	public VarType getType() {
+		if (type == null)
+			type = getTypeFromDesc(getDescription());
+		return type;
+	}
+
+	/**
+	 * Returns the type contained in this array. Types are described in {@link VarType}.
+	 * @return	The type encapsulated in this array or {@code null} if not a array.
+	 */
+	public VarType getArrayType() {
+		if (!isArray())
+			return null;
+		if (arrayType == null)
+			arrayType = getTypeFromDesc(getDescription().substring(1));
+		return arrayType;
+	}
+	
+	/**
+	 * Convert the description to the according VarType
+	 * @param desc	Variable description to convert
+	 * @return	The fitting {@link VarType} for this description
+	 */
+	public static VarType getTypeFromDesc(String desc) {
+		if (desc.equals("Ljava/lang/String;")) {
+			return VarType.STRING;
+		} else if (desc.equals("C")) {
+			return VarType.CHAR;
+		} else if (desc.length() == 1) {
+			return VarType.OTHER;
+		} else {
+			return VarType.OBJECT;
+		}
+	}
 }
