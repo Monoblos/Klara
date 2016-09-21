@@ -13,6 +13,8 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
@@ -96,6 +98,9 @@ public final class VariableChangePrinter implements TransformationEventListener 
 		}
 		if (type == VarType.OBJECT) {
 			//Add the typical Class@Hash
+			LabelNode jumpNode = new LabelNode();
+			il.add(var.load());
+			il.add(new JumpInsnNode(Opcodes.IFNULL, jumpNode));
 			il.add(new LdcInsnNode(" ("));
 			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
 			il.add(var.load());
@@ -110,6 +115,7 @@ public final class VariableChangePrinter implements TransformationEventListener 
 			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
 			il.add(new LdcInsnNode(")"));
 			il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
+			il.add(jumpNode);
 		}
 		return il;
 	}
