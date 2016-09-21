@@ -129,7 +129,8 @@ public class Transformer extends ClassNode {
 	@SuppressWarnings("unchecked")
 	synchronized private void transform() {
 		for (MethodNode mn : (List<MethodNode>) methods) {
-			methodTransform(mn);
+			if (mn.instructions.size() > 0)
+				methodTransform(mn);
 		}
 	}
 	
