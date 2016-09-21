@@ -5,7 +5,6 @@ import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileAttribute;
 
 /**
  * Utility class used by generated prints of the {@link Transformer}. Prints will always be sent to the stream of this class.
@@ -42,9 +41,10 @@ public class OutputStreamProvider {
 	 * @throws IOException	If something goes wrong
 	 */
 	public static void setToFile(Path filePath) throws IOException {
-		Files.createDirectories(filePath, (FileAttribute<?>)null);
+		Files.createDirectories(filePath.toAbsolutePath().getParent());
 		if (!Files.exists(filePath))
-			Files.createFile(filePath, (FileAttribute<?>)null);
+			Files.createFile(filePath);
+		System.out.println(filePath.toAbsolutePath().toString());
 		OutputStreamProvider.stream = new PrintStream(filePath.toFile());
 		isCustomStream = true;
 	}
