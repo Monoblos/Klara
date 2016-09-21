@@ -63,6 +63,10 @@ public final class VariableChangePrinter implements TransformationEventListener 
 	 * @return	The instructions to append it to a {@link StringBuilder}
 	 */
 	private InsnList generateVariablePrint(AbstractVariable var) {
+		InsnList il = new InsnList();
+
+		if (var.getName().equals("this"))
+			return il;
 		VarType type = var.getType();
 
 		String builderMethod = "Ljava/lang/Object;";
@@ -71,7 +75,6 @@ public final class VariableChangePrinter implements TransformationEventListener 
 		} else if (var.isArray() || type == VarType.STRING)
 			builderMethod = "Ljava/lang/String;";
 
-		InsnList il = new InsnList();
 		il.add(new LdcInsnNode("New value of " + var.getName() + ": "));
 		il.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false));
 		if (type == VarType.STRING || type == VarType.CHAR) {
