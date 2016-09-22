@@ -28,9 +28,11 @@ public final class TransformUtils {
 	 * @return	A formated location string
 	 */
 	public static String formatLocation(String className, int line) {
-		if (line != 0)
-			return "#" + className + "@L" + line + ": ";
-		return "#" + className + "@G: ";
+		if (line == -1)
+			return "#" + className + "@G: ";
+		if (line == 0)
+			return "#" + className + "@L?: ";
+		return "#" + className + "@L" + line + ": ";
 	}
 	
 	/**
