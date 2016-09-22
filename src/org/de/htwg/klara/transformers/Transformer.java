@@ -102,8 +102,15 @@ public class Transformer extends ClassNode {
 	 * @param line	The new line
 	 */
 	private void setLine(LineNumberNode line) {
+		if (currentLine != null)
+			sendEvent(new LineEndEvent(currentLine));
 		currentLine = line;
-		inLineScope = lineScope.contains(line.line);
+		if (currentLine != null) {
+			inLineScope = lineScope.contains(line.line);
+			sendEvent(new LineStartEvent(currentLine));
+		} else {
+			inLineScope = false;
+		}
 	}
 	
 	@Override
@@ -145,6 +152,7 @@ public class Transformer extends ClassNode {
 		currentMethod = mn;
 		currentScope.clear();
 		futureVariables.clear();
+		setLine(TransformUtils.guessMethodStart(mn));
 		
 		for (LocalVariableNode lvn : (List<LocalVariableNode>)mn.localVariables) {
 			futureVariables.add(lvn);
@@ -186,14 +194,9 @@ public class Transformer extends ClassNode {
 						sendEvent(new ScopeReachedEvent(label, new LocalVariable(tmpNode)));
 					}
 				}
-			} else if (in.getType() == AbstractInsnNode.LINE) {
+			} else if (in.getType() == AbstractInsnNode.LINE && currentLine.line != 0) {
 				LineNumberNode lnn = (LineNumberNode)in;
-				if (currentLine != null)
-					sendEvent(new LineEndEvent(currentLine));
-				
 				setLine(lnn);
-
-				sendEvent(new LineStartEvent(currentLine));
 			} else if (in.getType() == AbstractInsnNode.FIELD_INSN) {
 				FieldInsnNode fin = (FieldInsnNode)in;
 				if ((fin.getOpcode() == Opcodes.PUTSTATIC || fin.getOpcode() == Opcodes.PUTFIELD)
