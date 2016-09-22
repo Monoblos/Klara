@@ -33,18 +33,26 @@ public final class TransformUtils {
 		return "#" + className + "@G: ";
 	}
 	
+	/**
+	 * Guess the line of the method head (first line number node - 1).
+	 * Will return 0 if no line information was found.
+	 * Will return -1 for generated methods (which have a $ in the name). 
+	 * @param method	The method to search in
+	 * @return	-1 for generated methods, 0 if no line information contained or 1 less the the first line number in the method body
+	 */
 	public static LineNumberNode guessMethodStart(MethodNode method) {
+		if (method.name.contains("$"))
+			return new LineNumberNode(-1, null);
+
 		int line = 0;
 		
-		if (!method.name.contains("$")) {
-			@SuppressWarnings("unchecked")
-			Iterator<AbstractInsnNode> iter = method.instructions.iterator();
-			while(iter.hasNext()) {
-				AbstractInsnNode node = iter.next();
-				if (node.getType() == AbstractInsnNode.LINE) {
-					line = ((LineNumberNode)node).line - 1;
-					break;
-				}
+		@SuppressWarnings("unchecked")
+		Iterator<AbstractInsnNode> iter = method.instructions.iterator();
+		while(iter.hasNext()) {
+			AbstractInsnNode node = iter.next();
+			if (node.getType() == AbstractInsnNode.LINE) {
+				line = ((LineNumberNode)node).line - 1;
+				break;
 			}
 		}
 		

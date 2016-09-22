@@ -194,7 +194,7 @@ public class Transformer extends ClassNode {
 						sendEvent(new ScopeReachedEvent(label, new LocalVariable(tmpNode)));
 					}
 				}
-			} else if (in.getType() == AbstractInsnNode.LINE && currentLine.line != 0) {
+			} else if (in.getType() == AbstractInsnNode.LINE && currentLine.line != -1) {
 				LineNumberNode lnn = (LineNumberNode)in;
 				setLine(lnn);
 			} else if (in.getType() == AbstractInsnNode.FIELD_INSN) {
