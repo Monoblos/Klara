@@ -49,7 +49,8 @@ public final class VariableChangePrinter implements TransformationEventListener 
 				trans.printLine(iincIn, generateVariablePrint(lv));
 		} else if (event.getType() == TransformationEvent.SCOPE_REACHED) {
 			ScopeReachedEvent sre = (ScopeReachedEvent)event;
-			trans.printLine(sre.getNode(), generateVariablePrint(sre.getVar()));
+			//Print before the label to prevent double printing if it is used as a jump marker (as in a for loop). No available for parameters.
+			trans.printLine(sre.getNode().getPrevious() != null ? sre.getNode().getPrevious() : sre.getNode(), generateVariablePrint(sre.getVar()));
 		} else if (event.getType() == TransformationEvent.CLS_VAR_CHANGED) {
 			FieldInsnNode node = (FieldInsnNode)event.getNode();
 			ClassVariable cv = new ClassVariable(node.owner, node.name, node.desc, node.getOpcode() == Opcodes.PUTSTATIC);
