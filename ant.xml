@@ -3,9 +3,9 @@
     <!--ANT 1.7 is required                                        -->
 
 	<target name="compile">
-		<javac srcdir="./src"
-		         destdir="./bin"
-		         classpath="./lib/asm-all-5.1.jar"
+		<javac srcdir="src"
+		         destdir="bin"
+		         classpath="lib/asm-all-5.1.jar"
 		         debug="on"
 				 compiler="modern"
 				 includeantruntime="false"
@@ -20,9 +20,9 @@
                 <attribute name="Class-Path" value="."/>
                 <attribute name="Rsrc-Class-Path" value="./ asm-all-5.1.jar"/>
             </manifest>
-            <zipfileset src="./lib/jar-in-jar-loader.zip"/>
-            <fileset dir="./bin"/>
-            <zipfileset dir="./lib" includes="asm-all-5.1.jar"/>
+            <zipfileset src="lib/jar-in-jar-loader.zip"/>
+            <fileset dir="bin"/>
+            <zipfileset dir="lib" includes="asm-all-5.1.jar"/>
             <zipfileset dir="." includes="LICENCE.txt"/>
         </jar>
     </target>
