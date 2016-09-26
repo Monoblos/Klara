@@ -177,7 +177,35 @@ public class TransformingClassLoader extends ClassLoader {
 			lineSpec = defaultLineSpec;
 		}
 		
-		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES) {
+			@Override
+		    protected String getCommonSuperClass(final String type1, final String type2) {
+				// Exactly the same as the original implementation, beside using this class loader instead of the default
+				// Method is used when computing the frames, the default implementation will sometimes not be able to find classes
+		        Class<?> c, d;
+		        ClassLoader classLoader = TransformingClassLoader.this;
+		        try {
+		            c = Class.forName(type1.replace('/', '.'), false, classLoader);
+		            d = Class.forName(type2.replace('/', '.'), false, classLoader);
+		        } catch (Exception e) {
+		            throw new RuntimeException(e.toString());
+		        }
+		        if (c.isAssignableFrom(d)) {
+		            return type1;
+		        }
+		        if (d.isAssignableFrom(c)) {
+		            return type2;
+		        }
+		        if (c.isInterface() || d.isInterface()) {
+		            return "java/lang/Object";
+		        } else {
+		            do {
+		                c = c.getSuperclass();
+		            } while (!c.isAssignableFrom(d));
+		            return c.getName().replace('.', '/');
+		        }
+		    }
+		};
 		Transformer trans;
 		try {
 			if (debug) {
@@ -220,10 +248,11 @@ public class TransformingClassLoader extends ClassLoader {
 		boolean modify = matchesFilter(name);
 		if (!modify)
 			return super.loadClass(name, resolve);
-		
+
 		Class<?> c = findClass(name);
 		if (resolve)
 			resolveClass(c);
+
 		return c;
 	}
 	
